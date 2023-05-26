@@ -11,4 +11,7 @@ The segmenting function does the same work as the deconvolute function, but sepa
 
 The import_Overlapping signals functions imports data of the ToF2R, and then is identifying pulses that contain overlapping elements, for any elements given by the user. 
 
+The calibration_curve_values function makes a calibration curve of the given values by the user. 
+The calibration_curve_datasets does the same, only using datasets for Y values instead of given values. 
+
 More functions with more capabilities are on the way. 
