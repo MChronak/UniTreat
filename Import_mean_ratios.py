@@ -1226,7 +1226,7 @@ def elemental_ratios(waveforms,element_numerator,element_denominator):
         output = output.assign(Ca42 = denominator)
     if element_denominator == "Ca43":
         denominator = data['[43Ca]+ mass 42.9582'] # 0.135%
-        output = output.assign(Ca43 = denominatorr)
+        output = output.assign(Ca43 = denominator)
     if element_denominator == "Ca44":
         denominator = data['[44Ca]+ mass 43.9549'] # 2.086%
         output = output.assign(Ca44 = denominator)
