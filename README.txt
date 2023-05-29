@@ -14,4 +14,6 @@ The import_Overlapping signals functions imports data of the ToF2R, and then is 
 The calibration_curve_values function makes a calibration curve of the given values by the user. 
 The calibration_curve_datasets does the same, only using datasets for Y values instead of given values. 
 
+Import_mean_ratios uploads a file, and gives the elemental ratio calculation of the chosen analytes. 
+
 More functions with more capabilities are on the way. 
