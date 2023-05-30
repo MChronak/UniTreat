@@ -16,4 +16,6 @@ The calibration_curve_datasets does the same, only using datasets for Y values i
 
 Import_mean_ratios uploads a file, and gives the elemental ratio calculation of the chosen analytes. 
 
+Import_ratios_per_cell uploads a file, and gives the elemental ratio calculation of the chosen analytes on a per cell basis.
+
 More functions with more capabilities are on the way. 
