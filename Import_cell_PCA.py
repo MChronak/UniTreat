@@ -18,10 +18,6 @@ from sklearn import preprocessing
 import matplotlib.pyplot as plt
 import sklearn
 
-
-# In[2]:
-
-
 def deconvolute (dataset):
     """Separates the single-moieties related events from the background in a given dataset.
     
@@ -70,10 +66,6 @@ def deconvolute (dataset):
     event_std = events.std()
     return background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, threshold
 
-
-# In[3]:
-
-
 def find_events (dataset,datapoints_per_segment):
     """Separates the single-moieties related events from the background in a given dataset, and taking into account potential backgeound drifting.
     
@@ -100,9 +92,6 @@ def find_events (dataset,datapoints_per_segment):
         split_event_dataset = split_event_dataset.append(events)
     events = split_event_dataset
     return events
-
-
-# In[26]:
 
 
 def single_cell_PCA(waveforms,*elements):
@@ -1643,23 +1632,8 @@ def single_cell_PCA(waveforms,*elements):
     ax3.vlines(x=0, ymin=-1, ymax=1,color='black', linestyle='-', linewidth=0.75)
     ax3.add_patch(circle1)
 
-    #plt.savefig("The brilliancy plot", bbox_inches = 'tight', dpi = 300)
+    plt.savefig("The brilliancy plot", bbox_inches = 'tight', dpi = 300)
     return output
-
-
-# In[27]:
-
-
-output = single_cell_PCA(65,"P31","Mg25","Cu65","Fe57","Zn64")
-
-
-# In[28]:
-
-
-output
-
-
-# In[ ]:
 
 
 
