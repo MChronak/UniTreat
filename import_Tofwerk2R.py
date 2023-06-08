@@ -1,20 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-import pandas as pd
-from tkinter import *
-from tkinter import filedialog
-import matplotlib.pyplot as plt
-
-
-# In[98]:
-
-
 def import_tofwerk2R(waveforms,*elements):
-    """Imports data exported from the TofPilot software of TofWerk2R
+    """Imports data exported from the TofPilot software of TofWerk2R, and creates 1) a pandas datasset ready for further use and 2) a plot of the given data
     
     Call by:
     dataset = import_tofwerk2R(waveforms,element1, element2,....)
@@ -43,7 +28,7 @@ def import_tofwerk2R(waveforms,*elements):
     file.close()
     
     output = pd.DataFrame()
-    plot = False
+    
     for element in elements:
         if element == "Al27":
             Al27 = data['[27Al]+ mass 26.981'] # 100%
@@ -1165,22 +1150,5 @@ def import_tofwerk2R(waveforms,*elements):
     ax.legend(output)
     
     return output
-
-
-# In[101]:
-
-
-output = import_tofwerk2R(65,"P31","Mg25","Cu65","Zn64")
-
-
-# In[102]:
-
-
-output
-
-
-# In[ ]:
-
-
 
 
