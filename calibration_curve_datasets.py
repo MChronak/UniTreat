@@ -1,9 +1,9 @@
-def calibration_curve(title,Xaxis,Yaxis):
+def calibration_curve_datasets(title,Xaxis,Yaxis):
     """
     Makes a calibration curve of the given values.
     
     Call by:
-    slope, intercept, r_value, p_value, stderr = calibration_curve(title,Xaxis,Yaxis)
+    slope, intercept, r_value, p_value, stderr = calibration_curve_datasets(title,Xaxis,Yaxis)
 
     Input:
     - title : Has to be a string. Appears at the top of the chart and in the name of the saved file.
