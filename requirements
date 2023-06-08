@@ -1,0 +1,12 @@
+import numpy as np
+import pandas as pd
+import math
+import decimal
+import copy
+from statistics import mean
+from statistics import stdev
+from tkinter import *
+from tkinter import filedialog
+import matplotlib.pyplot as plt
+from scipy.stats import linregress
+import scipy.stats as stats
