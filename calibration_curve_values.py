@@ -1,11 +1,3 @@
-
-import matplotlib.pyplot as plt
-from scipy.stats import linregress
-import scipy.stats as stats
-import numpy as np
-import pandas as pd
-
-
 def calibration_curve(title,Xaxis,Yaxis):
     """
     Makes a calibration curve of the given values.
@@ -38,5 +30,3 @@ def calibration_curve(title,Xaxis,Yaxis):
     ax.text(0.1*min(Xaxis), 0.8*max(Yaxis), '$R^{2}$=' + '{:.4f}'.format((r_value)**2), size=14)
     plt.savefig(title, bbox_inches = 'tight', dpi = 300) 
     return slope, intercept, r_value, p_value, stderr
-
-
