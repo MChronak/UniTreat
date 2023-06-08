@@ -1,17 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-import pandas as pd
-from tkinter import *
-from tkinter import filedialog
-
-
-# In[48]:
-
-
 def import_tofwerk2R(waveforms,*elements):
     """Imports data exported from the TofPilot software of TofWerk2R
     
@@ -1151,4 +1137,3 @@ def import_tofwerk2R(waveforms,*elements):
         if element == "All":
             output = data
     return output
-
