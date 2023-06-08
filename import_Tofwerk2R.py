@@ -1,3 +1,18 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+import pandas as pd
+from tkinter import *
+from tkinter import filedialog
+import matplotlib.pyplot as plt
+
+
+# In[98]:
+
+
 def import_tofwerk2R(waveforms,*elements):
     """Imports data exported from the TofPilot software of TofWerk2R
     
@@ -28,7 +43,7 @@ def import_tofwerk2R(waveforms,*elements):
     file.close()
     
     output = pd.DataFrame()
-    
+    plot = False
     for element in elements:
         if element == "Al27":
             Al27 = data['[27Al]+ mass 26.981'] # 100%
@@ -1136,4 +1151,36 @@ def import_tofwerk2R(waveforms,*elements):
             
         if element == "All":
             output = data
+            
+    fig = plt.figure(figsize =(15,5))
+    ax = fig.add_subplot(1,1,1)
+    ax.set_title("TRA")
+    ax.set_xlabel("Time (sec)")
+    ax.set_ylabel("Intensity (cps)")
+    
+    opacity_count=1
+    for element in elements:
+        opacity_count = opacity_count+1
+        ax.plot(data['time (s)'],output[element], alpha = 0.8, linewidth = 0.5)
+    ax.legend(output)
+    
     return output
+
+
+# In[101]:
+
+
+output = import_tofwerk2R(65,"P31","Mg25","Cu65","Zn64")
+
+
+# In[102]:
+
+
+output
+
+
+# In[ ]:
+
+
+
+
