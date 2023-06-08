@@ -18,4 +18,7 @@ Import_mean_ratios uploads a file, and gives the elemental ratio calculation of 
 
 Import_ratios_per_cell uploads a file, and gives the elemental ratio calculation of the chosen analytes on a per cell basis.
 
+Import_single_cell_PCA uploads a desired file, and gives back a dataset containing pulses that include all of the requested element events.
+In addition, it runs a PCA and creates and saves a multiplot containing a Scree plot, PCA plot and Loading Scores plot. 
+
 More functions with more capabilities are on the way. 
