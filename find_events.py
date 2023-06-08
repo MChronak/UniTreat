@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[7]:
-
-
 def find_events (dataset,datapoints_per_segment):
     """Separates the single-moieties related events from the background in a given dataset, and taking into account potential backgeound drifting.
     
@@ -34,10 +28,6 @@ def find_events (dataset,datapoints_per_segment):
         split_event_dataset = split_event_dataset.append(events)
     events = split_event_dataset
     return events
-
-
-# In[ ]:
-
 
 
 
