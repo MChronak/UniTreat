@@ -1,23 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[10]:
-
-
-import numpy as np
-import pandas as pd
-import math
-import decimal
-import copy
-from statistics import mean
-from statistics import stdev
-from tkinter import *
-from tkinter import filedialog
-
-
-# In[11]:
-
-
 def deconvolute (dataset):
     """Separates the single-moieties related events from the background in a given dataset.
     
@@ -1557,21 +1537,6 @@ def overlapping_signals(waveforms,*elements):
             
         output = output.dropna()
     return output
-
-
-# In[14]:
-
-
-output = overlapping_signals(65,"Au197","Pt195","Ir193")
-
-
-# In[15]:
-
-
-output
-
-
-# In[ ]:
 
 
 
