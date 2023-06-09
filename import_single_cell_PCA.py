@@ -1,28 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[7]:
-
-
-import numpy as np
-import pandas as pd
-import math
-import decimal
-import copy
-from statistics import mean
-from statistics import stdev
-from tkinter import *
-from tkinter import filedialog
-from sklearn.decomposition import PCA
-from sklearn import preprocessing
-import matplotlib.pyplot as plt
-import sklearn
-import seaborn as sns
-
-
-# In[8]:
-
-
 def deconvolute (dataset):
     """Separates the single-moieties related events from the background in a given dataset.
     
@@ -71,10 +46,6 @@ def deconvolute (dataset):
     event_std = events.std()
     return background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, threshold
 
-
-# In[9]:
-
-
 def find_events (dataset,datapoints_per_segment):
     """Separates the single-moieties related events from the background in a given dataset, and taking into account potential backgeound drifting.
     
@@ -102,11 +73,7 @@ def find_events (dataset,datapoints_per_segment):
     events = split_event_dataset
     return events
 
-
-# In[10]:
-
-
-def single_cell_PCA(waveforms,*elements):
+def import_single_cell_PCA(waveforms,*elements):
     """Imports data exported from the TofPilot software of TofWerk2R, and applied PCA on a per cell basis. 
     
     Call by:
@@ -1649,21 +1616,6 @@ def single_cell_PCA(waveforms,*elements):
     plt.savefig("The brilliancy plot", bbox_inches = 'tight', dpi = 300)
     sns.reset_orig()
     return output
-
-
-# In[11]:
-
-
-output = single_cell_PCA(65,"P31","Mg25","Cu65","Fe57","Zn64")
-
-
-# In[12]:
-
-
-output
-
-
-# In[ ]:
 
 
 
