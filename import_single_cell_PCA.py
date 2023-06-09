@@ -77,7 +77,7 @@ def import_single_cell_PCA(waveforms,*elements):
     """Imports data exported from the TofPilot software of TofWerk2R, and applied PCA on a per cell basis. 
     
     Call by:
-    dataset = single_cell_PCA(waveforms,element1, element2,....)
+    dataset = import_single_cell_PCA(waveforms,element1, element2,....)
     
     -"dataset" the desired name of the dataset.
     -"waveforms" is the number of waveforms used during the data acquisition. Necessary for the conversion to cps and accurate event calculation.
