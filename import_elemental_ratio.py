@@ -1,4 +1,4 @@
-def elemental_ratios(waveforms,element_numerator,element_denominator):
+def import_elemental_ratio(waveforms,element_numerator,element_denominator):
     """Imports data exported from the TofPilot software of TofWerk2R, and calculates the elemental ratio of given analytes.
     
     Call by:
@@ -2247,6 +2247,6 @@ def elemental_ratios(waveforms,element_numerator,element_denominator):
     
     numerator_mean = numerator.mean()
     denominator_mean = denominator.mean()
-    mean_ratio = numerator_mean/denominator_mean #to avoid problems of dividing with 0
+    mean_ratio = numerator_mean/denominator_mean #to avoid problems of dividing with 0, divides the mean values, not the datsets on a per point ratio
     return output, numerator_mean, denominator_mean, mean_ratio
 
