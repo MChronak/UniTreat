@@ -1,12 +1,12 @@
 def import_plot_elemental_ratio(waveforms,element_numerator,element_denominator):
-    """Imports data exported from the TofPilot software of TofWerk2R
+    """Imports data exported from the TofPilot software of TofWerk2R, and calculates the elemental ratio of given analytes. Also plots the given analytes, and the elemental ratio.
     
     Call by:
-    dataset = import_tofwerk2R(waveforms,element1, element2,....)
+    output, numerator_mean, denominator_mean, mean_ratio = elemental_ratios(waveforms,"Numerator Analyte","Denominator Analyte")
     
-    -"dataset" the desired name of the dataset.
+    -"output, numerator_mean, denominator_mean, mean_ratio", insert desired names, but in this order.
     -"waveforms" is the number of waveforms used during the data acquisition. Necessary for the conversion to cps.
-    -"element" is the desired element to be used. Use the symbol and mass without space, and in quotes, e.g. "Li6","C12". Use "All" if you just want the entire acquired dataset.
+    -"Numerator/Denominator Analyte". Use the symbols and nominal masses without space, and in quotes, e.g. "Li6","C12".
     
     
     Browse files, click and wait for the dataset to load.
