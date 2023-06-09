@@ -46,10 +46,6 @@ def deconvolute (dataset):
     event_std = events.std()
     return background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, threshold
 
-
-# In[12]:
-
-
 def find_events (dataset,datapoints_per_segment):
     """Separates the single-moieties related events from the background in a given dataset, and taking into account potential backgeound drifting.
     
@@ -76,10 +72,6 @@ def find_events (dataset,datapoints_per_segment):
         split_event_dataset = split_event_dataset.append(events)
     events = split_event_dataset
     return events
-
-
-# In[13]:
-
 
 def overlapping_signals(waveforms,*elements):
     """Imports data exported from the TofPilot software of TofWerk2R
