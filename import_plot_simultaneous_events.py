@@ -1540,7 +1540,7 @@ def import_plot_simultaneous_events(waveforms,*elements):
         ax.set_title(str(element))
         ax.set_xlabel("Intensity (cps)")
         ax.set_ylabel("Frequency")
-        ax.hist(np.log10(output[str(element)]),
+        ax.hist(output[str(element)]),
                 linewidth = 0.5,
                 edgecolor = 'white',
                 bins=20,
