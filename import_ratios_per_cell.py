@@ -1,24 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[13]:
-
-
-import numpy as np
-import pandas as pd
-import math
-import decimal
-import copy
-from statistics import mean
-from statistics import stdev
-from tkinter import *
-
-from tkinter import filedialog
-
-
-# In[14]:
-
-
 def deconvolute (dataset):
     """Separates the single-moieties related events from the background in a given dataset.
     
@@ -67,10 +46,6 @@ def deconvolute (dataset):
     event_std = events.std()
     return background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, threshold
 
-
-# In[15]:
-
-
 def find_events (dataset,datapoints_per_segment):
     """Separates the single-moieties related events from the background in a given dataset, and taking into account potential backgeound drifting.
     
@@ -97,16 +72,6 @@ def find_events (dataset,datapoints_per_segment):
         split_event_dataset = split_event_dataset.append(events)
     events = split_event_dataset
     return events
-
-
-# In[ ]:
-
-
-
-
-
-# In[16]:
-
 
 def import_ratios_per_cell(waveforms,element_numerator,element_denominator):
     """Imports data exported from the TofPilot software of TofWerk2R, and gives the elemental ratio of the given analytes on a per cell basis.
@@ -2987,23 +2952,3 @@ def import_ratios_per_cell(waveforms,element_numerator,element_denominator):
     
     mean_ratio = output["Ratio"].mean() #to avoid problems of dividing with 0
     return output, mean_ratio
-
-
-# In[17]:
-
-
-output, mean_ratio = import_ratios_per_cell(65,"Ir193","Pt195")
-output
-
-
-# In[18]:
-
-
-mean_ratio
-
-
-# In[ ]:
-
-
-
-
