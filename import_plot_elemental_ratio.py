@@ -1,25 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[90]:
-
-
-import numpy as np
-import pandas as pd
-import math
-import decimal
-import copy
-from statistics import mean
-from statistics import stdev
-from tkinter import *
-import matplotlib.pyplot as plt
-from tkinter import filedialog
-import seaborn as sns
-
-
-# In[95]:
-
-
 def import_plot_elemental_ratio(waveforms,element_numerator,element_denominator):
     """Imports data exported from the TofPilot software of TofWerk2R
     
@@ -2301,41 +2279,6 @@ def import_plot_elemental_ratio(waveforms,element_numerator,element_denominator)
     plt.savefig("Elemental Ratio")
     sns.reset_orig()
     return output, numerator_mean, denominator_mean, mean_ratio
-
-
-# In[96]:
-
-
-output, numerator_mean, denominator_mean, mean_ratio = import_plot_elemental_ratio(65,"Ir193","Au197")
-output
-
-
-# In[97]:
-
-
-numerator_mean
-
-
-# In[98]:
-
-
-denominator_mean
-
-
-# In[99]:
-
-
-mean_ratio
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
 
 
 
