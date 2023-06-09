@@ -1,28 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-import numpy as np
-import pandas as pd
-import math
-import decimal
-import copy
-from statistics import mean
-from statistics import stdev
-from tkinter import *
-from tkinter import filedialog
-from sklearn.decomposition import PCA
-from sklearn import preprocessing
-import matplotlib.pyplot as plt
-import sklearn
-import seaborn as sns
-
-
-
-
-#PCA plotting
 def single_cell_PCA(dataset, *elements):
     """
     Applies PCA on a given dataset.
@@ -117,9 +92,6 @@ def single_cell_PCA(dataset, *elements):
 
     plt.savefig("The brilliancy plot", bbox_inches = 'tight', dpi = 300)
     sns.reset_orig()
-
-
-# In[14]:
 
 
 single_cell_PCA(output,"P31","Mg25","Cu65","Fe57","Zn64")
