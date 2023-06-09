@@ -1546,7 +1546,7 @@ def import_single_cell_PCA(waveforms,*elements):
     labels = ["PC"+str(x) for x in range(1,len(per_var)+1)]
 
         #Make the plot frame
-    fig = plt.figure(figsize =(5,15))
+    fig = plt.figure(figsize =(5,18))
     ax = fig.add_subplot(3,1,1)
     ax2 = fig.add_subplot(3,1,2)
     ax3 = fig.add_subplot(3,1,3)
