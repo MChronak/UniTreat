@@ -1,24 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
-
-import numpy as np
-import pandas as pd
-import math
-import decimal
-import copy
-from statistics import mean
-from statistics import stdev
-from tkinter import *
-from tkinter import filedialog
-import matplotlib.pyplot as plt
-
-
-# In[4]:
-
-
 def deconvolute (dataset):
     """Separates the single-moieties related events from the background in a given dataset.
     
@@ -67,10 +46,6 @@ def deconvolute (dataset):
     event_std = events.std()
     return background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, threshold
 
-
-# In[5]:
-
-
 def find_events (dataset,datapoints_per_segment):
     """Separates the single-moieties related events from the background in a given dataset, and taking into account potential backgeound drifting.
     
@@ -97,10 +72,6 @@ def find_events (dataset,datapoints_per_segment):
         split_event_dataset = split_event_dataset.append(events)
     events = split_event_dataset
     return events
-
-
-# In[57]:
-
 
 def import_plot_simultaneous_events(waveforms,*elements):
     """Imports data exported from the TofPilot software of TofWerk2R. Exports histograms of the chosen events for the selected elements.
@@ -1576,27 +1547,6 @@ def import_plot_simultaneous_events(waveforms,*elements):
                )
         plt.savefig(element)
     return output
-
-
-# In[58]:
-
-
-output = import_plot_simultaneous_events(217,"P31","Pb208")
-
-
-# In[59]:
-
-
-output
-
-
-# In[60]:
-
-
-output.count()
-
-
-# In[ ]:
 
 
 
