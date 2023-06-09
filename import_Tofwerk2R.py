@@ -1143,9 +1143,7 @@ def import_tofwerk2R(waveforms,*elements):
     ax.set_xlabel("Time (sec)")
     ax.set_ylabel("Intensity (cps)")
     
-    opacity_count=1
     for element in elements:
-        opacity_count = opacity_count+1
         ax.plot(data['time (s)'],output[element], alpha = 0.8, linewidth = 0.5)
     ax.legend(output)
     
