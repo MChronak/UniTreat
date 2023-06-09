@@ -10,3 +10,4 @@ from tkinter import filedialog
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 import scipy.stats as stats
+import seaborn as sns
