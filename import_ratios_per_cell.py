@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[13]:
+
+
 import numpy as np
 import pandas as pd
 import math
@@ -8,6 +14,10 @@ from statistics import stdev
 from tkinter import *
 
 from tkinter import filedialog
+
+
+# In[14]:
+
 
 def deconvolute (dataset):
     """Separates the single-moieties related events from the background in a given dataset.
@@ -57,6 +67,10 @@ def deconvolute (dataset):
     event_std = events.std()
     return background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, threshold
 
+
+# In[15]:
+
+
 def find_events (dataset,datapoints_per_segment):
     """Separates the single-moieties related events from the background in a given dataset, and taking into account potential backgeound drifting.
     
@@ -84,16 +98,27 @@ def find_events (dataset,datapoints_per_segment):
     events = split_event_dataset
     return events
 
-def elemental_ratios_per_moiety(waveforms,element_numerator,element_denominator):
+
+# In[ ]:
+
+
+
+
+
+# In[16]:
+
+
+def import_ratios_per_cell(waveforms,element_numerator,element_denominator):
     """Imports data exported from the TofPilot software of TofWerk2R, and gives the elemental ratio of the given analytes on a per cell basis.
     
     Call by:
-    dataset = import_tofwerk2R(waveforms,numerator element,denominator element)
+    dataset, mean_ratio = import_tofwerk2R(waveforms,element_numerator, element_denominator)
     
     -"dataset" the desired name of the dataset.
+    - "mean_ratio" is the desired name for the mean ratio of the EVENTS of the dataset
     -"waveforms" is the number of waveforms used during the data acquisition. Necessary for the conversion to cps.
-    -"numerator element" is the desired element to be used as a numerator. Use the symbol and mass without space, and in quotes, e.g. "Li6","C12".
-    -"numerator element" is the desired element to be used as a denominator
+    -"element_numerator/denominator" is the desired elements to be used as numerator and denominator respectively. Use the symbol and mass without space, and in quotes, e.g. "Li6","C12".
+    
     
     Browse files, click and wait for the dataset to load.
     
@@ -2962,6 +2987,22 @@ def elemental_ratios_per_moiety(waveforms,element_numerator,element_denominator)
     
     mean_ratio = output["Ratio"].mean() #to avoid problems of dividing with 0
     return output, mean_ratio
+
+
+# In[17]:
+
+
+output, mean_ratio = import_ratios_per_cell(65,"Ir193","Pt195")
+output
+
+
+# In[18]:
+
+
+mean_ratio
+
+
+# In[ ]:
 
 
 
