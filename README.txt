@@ -22,13 +22,9 @@ Import_plot_elemental_ratio does the same, but also provides a plot of the reque
 Import_ratios_per_cell uploads a file, and gives the elemental ratio calculation of the chosen analytes on a per identified cell level.
 Import_plot_ratios_per_cell does the same, but also provides a plot of the requested data.
 
-Import_ratios_per_cell uploads a file, and gives the elemental ratio calculation of the chosen analytes on a per cell basis.
-
-Import_single_cell_PCA uploads a desired file, and gives back a dataset containing pulses that include all of the requested element events.
-In addition, it runs a PCA and creates and saves a multiplot containing a Scree plot, PCA plot and Loading Scores plot. 
+Import_single_cell_PCA uploads a desired file, and gives back a dataset containing pulses that include all of the requested element events.In addition, it runs a PCA and creates and saves a multiplot containing a Scree plot, PCA plot and Loading Scores plot. 
+single_cell_PCA applies PCA on a dataset and provides relevant plotting.
 
 import_cell_PCA is an older version of newer functions. 
-single_cell_PCA applies PCA on a dataset and provides relevant plotting. 
-Import_single_cell_PCA uploads a tofwerk2R file, identifies the overlapping events of the user's given elements, and then applies PCA on the resulting dataset for the identified cells. 
 
 More functions with more capabilities are on the way. 
