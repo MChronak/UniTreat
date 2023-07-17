@@ -1,4 +1,8 @@
+# ICP-MS universal output treatment
+
+
 This is a program the intents to make the analysis of ICP-MS related data universal. 
+
 The current focus is in the identification of particle- and cell- related pulses, and the multielemental analysis of datasets. 
 We will keep this up, as it looks like the most straight and impactfull way to publish.
 
