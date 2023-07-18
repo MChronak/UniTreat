@@ -27,6 +27,8 @@ def deconvolute (dataset):
     Pure Appl. Chem., 1995, Vol. 67, No. 10, pp. 1699-1723.
     J. Anal. At. Spectrom., 2013, 28, 1220.
     """
+    import copy
+    import pandas as pd
     working_dataset = copy.deepcopy(dataset) 
     event_num = -1 # Resetting the output values
     event_count = 0 
