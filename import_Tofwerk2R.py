@@ -1,4 +1,4 @@
-def import_tofwerk2R(waveforms,*elements):
+def import_tofwerk2R(*elements):
     """Imports data exported from the TofPilot software of TofWerk2R, and creates 1) a pandas datasset ready for further use and 2) a plot of the given data
     
     Call by:
