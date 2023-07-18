@@ -27,7 +27,7 @@ def import_tofwerk2R(*elements):
     
     for el in elements:
         loc_s = data.loc[:, el].to_dataframe().drop('mass', axis=1).squeeze()
-        output[f'{el}'] = loc_s)
+        output[f'{el}'] = loc_s
             
     fig = plt.figure(figsize =(15,5))
     ax = fig.add_subplot(1,1,1)
