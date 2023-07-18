@@ -14,7 +14,7 @@ def import_tofwerk2R(*elements):
     DO NOT close the tkinter window that appears, else the program will crush. 
     Minimize it until your work is done.
     """
-    from io import io
+    from get_data import io
     filepath = filedialog.askopenfilename(title='Choose file to open',
                                          filetypes = (("HDF5 files","*.h5"),
                                                       ("netCDF files","*.nc")))
