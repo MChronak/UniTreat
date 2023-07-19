@@ -3,7 +3,7 @@ from tkinter import filedialog
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def import_tofwerk2R(*elements):
+def import_tofwerk2R(*elements, make_plot = False):
     """Imports data exported from the TofPilot software of TofWerk2R, and creates 1) a pandas datasset ready for further use and 2) a plot of the given data
     
     Call by:
@@ -34,11 +34,12 @@ def import_tofwerk2R(*elements):
         loc_s = data.loc[:, el].to_dataframe().drop('mass', axis=1).squeeze()
         output[f'{el}'] = loc_s
             
-    fig = plt.figure(figsize =(15,5))
-    ax = fig.add_subplot(1,1,1)
-    ax.set_title("TRA")
-    ax.set_xlabel("Time (sec)")
-    ax.set_ylabel("Intensity (cps)")
+    if (make_plot):
+        fig = plt.figure(figsize =(15,5))
+        ax = fig.add_subplot(1,1,1)
+        ax.set_title("TRA")
+        ax.set_xlabel("Time (sec)")
+        ax.set_ylabel("Intensity (cps)")
     
     for element in elements:
         ax.plot(data['datapoints'].values,output[element], alpha = 0.8, linewidth = 0.5)
