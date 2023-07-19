@@ -187,18 +187,22 @@ def find_events (dataset,datapoints_per_segment):
 
 
 def segmenting (dataset,datapoints_per_segment):
-    """Separates the single-moieties related events from the background in a given dataset, and taking into account potential backgeound drifting.
+    """Separates the single-moieties related events from the background in a
+       given dataset, and taking into account potential backgeound drifting.
     
-    The given *dataset* is split into however many segments of *datapoints_per_segment* length. 
+    The given *dataset* is split into however many segments of
+    *datapoints_per_segment* length. 
     The 'deconvolute' funtion is then applied on each of the segments. 
-    The results for every output value are gathered into their respective groups.
+    The results for every output value are gathered into their respective
+    groups.
     
     input: dataset, desired value of segment length
     
     output:
     background - A dataset containing the datapoints not identified as events.
     events - A dataset containing the datapoints identified as particles.
-    loops - A list of the iterations each segment needed before it was deemed particle-free.
+    loops - A list of the iterations each segment needed before it was deemed
+            particle-free.
     threshold - A list of the threshold values of each individual segment.
     dissolved - The average of the background dataset.
     dissolved_std - The standard deviation of the background dataset.
@@ -210,6 +214,9 @@ def segmenting (dataset,datapoints_per_segment):
     threshold_mean - The average value of the threshold list.
     threshold_std - The standard deviation of the threshold list.
     """
+    import pandas as pd
+    import numpy as np
+
     division = len(dataset.index)/datapoints_per_segment # Defining the number of segments
     seg_number = int(round(division+0.5,0)) # making sure it's round and integer
     split = np.array_split(dataset, seg_number) #splitting the dataset
@@ -220,17 +227,11 @@ def segmenting (dataset,datapoints_per_segment):
     split_threshold_dataset= []
     split_loopcount_dataset = []
     
-    for i in range(seg_number):
-        split_event_dataset = split_event_dataset
-        split_background_dataset = split_background_dataset
-        split_total_count = split_total_count
-        split_loopcount_dataset = split_loopcount_dataset
-        split_threshold_dataset = split_threshold_dataset
-        dataset = split[(i)]
-        background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, threshold = deconvolute(dataset)
-        split_total_count = split_total_count + event_num
-        split_event_dataset = split_event_dataset.append(events)
-        split_background_dataset = split_background_dataset.append(background)
+    for ds in split:
+        background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, threshold = deconvolute(ds)
+        split_total_count += event_num
+        split_event_dataset = pd.concat((split_event_dataset,events))
+        split_background_dataset = pd.concat((split_background_dataset,background))
         split_loopcount_dataset.append(loop_count)
         split_threshold_dataset.append(threshold)
     background = split_background_dataset
@@ -242,10 +243,11 @@ def segmenting (dataset,datapoints_per_segment):
     event_num = split_event_dataset.dropna().count()
     event_mean = events.mean()
     event_std = events.std()
-    loop_mean = mean(loops)
-    loop_std = stdev(loops)
-    threshold_mean = mean(final_threshold)
-    threshold_std = stdev(final_threshold)
+    loop_mean = np.mean(loops)
+    loop_std = np.std(loops)
+    threshold_mean = np.mean(final_threshold)
+    threshold_std = np.std(final_threshold)
+
     return background, events, loops, final_threshold, dissolved, dissolved_std, event_num, event_mean, event_std, loop_mean, loop_std, threshold_mean, threshold_std
 
 
