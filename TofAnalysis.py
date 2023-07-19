@@ -3,15 +3,20 @@ from tkinter import filedialog
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def import_tofwerk2R(*elements, make_plot = False) :
-    """Imports data exported from the TofPilot software of TofWerk2R, and creates 1) a pandas datasset ready for further use and 2) a plot of the given data
+def getTofwerk2R(*elements, make_plot = False) :
+    """Imports data exported from the TofPilot software of TofWerk2R, and
+    creates 1) a pandas datasset ready for further use and 2) a plot of the
+    given data
     
     Call by:
     dataset = import_tofwerk2R(waveforms,element1, element2,....)
     
     -"dataset" the desired name of the dataset.
-    -"waveforms" is the number of waveforms used during the data acquisition. Necessary for the conversion to cps.
-    -"element" is the desired element to be used. Use the symbol and mass without space, and in quotes, e.g. "Li6","C12". Use "All" if you just want the entire acquired dataset.
+    -"waveforms" is the number of waveforms used during the data acquisition.
+    Necessary for the conversion to cps.
+    -"element" is the desired element to be used. Use the symbol and mass
+    without space, and in quotes, e.g. "Li6","C12". Use "All" if you just want
+    the entire acquired dataset.
     
     
     Browse files, click and wait for the dataset to load.
