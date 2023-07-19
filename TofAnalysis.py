@@ -176,3 +176,72 @@ def simultaneousEvents(datain,*elements,make_plots=False):
 
 
 
+def ratiosPerCell(datain,element_numerator,element_denominator,make_plot=False):
+    """Imports data exported from the TofPilot software of TofWerk2R, and gives
+    the elemental ratio of the given analytes on a per cell basis.
+    
+    Call by:
+    dataset, mean_ratio = import_tofwerk2R(waveforms,element_numerator,
+    element_denominator)
+    
+    -"dataset" the desired name of the dataset.
+    - "mean_ratio" is the desired name for the mean ratio of the EVENTS of the
+      dataset
+    -"waveforms" is the number of waveforms used during the data acquisition.
+      Necessary for the conversion to cps.
+    -"element_numerator/denominator" is the desired elements to be used as
+      numerator and denominator respectively. Use the symbol and mass without
+      space, and in quotes, e.g. "Li6","C12".
+    
+    
+    Browse files, click and wait for the dataset to load.
+    
+    DO NOT close the tkinter window that appears, else the program will crush. 
+    Minimize it until your work is done.
+    """
+    
+    output = pd.DataFrame()
+    
+        
+    numerator = datain[element_numerator]
+    denominator = datain[element_denominator]
+        
+    Ratio = numerator/denominator
+
+    output[element_numerator] = numerator
+    output[element_denominator] = denominator
+    output['Ratio'] = Ratio
+    
+    if (make_plot):
+        # Plotting
+        sns.set()
+        fig = plt.figure(figsize =(5,15))
+        ax = fig.add_subplot(3,1,1)
+        ax2 = fig.add_subplot(3,1,2)
+        ax3 = fig.add_subplot(3,1,3)
+        plt.subplots_adjust(hspace=0.3)
+
+        ax.set_title(element_numerator)
+        ax.set_xlabel("Time (s)")
+        ax.set_ylabel("Intensity (cps)")
+
+        ax2.set_title(element_denominator)
+        ax2.set_xlabel("Time (s)")
+        ax2.set_ylabel("Intensity (cps)")
+
+        ax3.set_title("Ratio")
+        ax3.set_xlabel("Ratio")
+        ax3.set_ylabel("Frequency")
+
+        ax.hist(numerator,
+                linewidth = 0.7)
+        ax2.hist(denominator,
+                linewidth = 0.7)
+        ax3.hist(Ratio,
+                 edgecolor = "white"
+                )
+        plt.savefig("Elemental Ratio")
+        sns.reset_orig()
+    
+    mean_ratio = Ratio.mean() #to avoid problems of dividing with 0
+    return output, mean_ratio
