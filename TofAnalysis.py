@@ -91,15 +91,14 @@ def elementalRatio(indata, element_numerator, element_denominator, make_plot = F
     numerator_mean = numerator.mean()
     denominator_mean = denominator.mean()
     mean_ratio = numerator_mean/denominator_mean #to avoid problems of dividing with 0, divides the mean values, not the datsets on a per point ratio
-
+    print("Ratio =",mean_ratio)
 
     # Plotting
     if (make_plot):
         sns.set()
-        fig = plt.figure(figsize =(5,15), dpi = 80)
-        ax = fig.add_subplot(3,1,1)
-        ax2 = fig.add_subplot(3,1,2)
-        ax3 = fig.add_subplot(3,1,3)
+        fig = plt.figure(figsize =(5,10), dpi = 80)
+        ax = fig.add_subplot(2,1,1)
+        ax2 = fig.add_subplot(2,1,2)
         plt.subplots_adjust(hspace=0.3)
     
         ax.set_title(element_numerator)
@@ -109,23 +108,13 @@ def elementalRatio(indata, element_numerator, element_denominator, make_plot = F
         ax2.set_title(element_denominator)
         ax2.set_xlabel("Time (s)")
         ax2.set_ylabel("Intensity (cps)")
-        
-        ax3.set_title("Ratio")
-        ax3.set_xlabel("Ratio")
-        ax3.set_ylabel("Frequency")
     
         ax.plot(output[str(element_numerator)],
                 linewidth = 0.7)
         ax2.plot(output[str(element_denominator)],
                 linewidth = 0.7)
 
-        output["Ratio"].replace([np.inf, -np.inf], np.nan, inplace=True)
-        output["Ratio"].dropna(inplace=True)
-
-        ax3.hist(output["Ratio"],
-                 edgecolor = "white",
-                )
-        plt.savefig("Elemental_Ratio.png", bbox_inches = 'tight')
+        plt.savefig("Elemental_Ratios_Elements.png", bbox_inches = 'tight')
         sns.reset_orig()
     
     return output, numerator_mean, denominator_mean, mean_ratio
