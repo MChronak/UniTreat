@@ -26,7 +26,7 @@ def getTofwerk2R(*elements, make_plot = False) :
     DO NOT close the tkinter window that appears, else the program will crush. 
     Minimize it until your work is done.
     """
-    from get_data import io
+    from functions import io
     filepath = filedialog.askopenfilename(title='Choose file to open',
                                          filetypes = (("HDF5 files","*.h5"),
                                                       ("netCDF files","*.nc")))
