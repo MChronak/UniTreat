@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+from .functions import *
 
 def getTofwerk2R(*elements, make_plot = False) :
     """Imports data exported from the TofPilot software of TofWerk2R, and
@@ -26,7 +27,7 @@ def getTofwerk2R(*elements, make_plot = False) :
     DO NOT close the tkinter window that appears, else the program will crush. 
     Minimize it until your work is done.
     """
-    from functions import io
+
     filepath = filedialog.askopenfilename(title='Choose file to open',
                                          filetypes = (("HDF5 files","*.h5"),
                                                       ("netCDF files","*.nc")))
@@ -39,7 +40,7 @@ def getTofwerk2R(*elements, make_plot = False) :
     
     for el in elements:
         loc_s = data.loc[:, el].to_dataframe().drop('mass', axis=1).squeeze()
-        output[f'{el}'] = loc_s
+        output[f'{el}'] = loc_s * waveforms
             
     if (make_plot):
         fig = plt.figure(figsize =(15,5))
@@ -118,4 +119,60 @@ def elementalRatio(indata, element_numerator, element_denominator, make_plot = F
         sns.reset_orig()
     
     return output, numerator_mean, denominator_mean, mean_ratio
+
+
+
+
+def simultaneousEvents(datain,*elements,make_plots=False):
+    """Imports data exported from the TofPilot software of TofWerk2R. Exports
+    histograms of the chosen events for the selected elements.
+    
+    Call by:
+    dataset = import_tofwerk2R(waveforms,element1, element2,....)
+    
+    -"dataset" the desired name of the dataset.
+    -"waveforms" is the number of waveforms used during the data acquisition.
+    Necessary for the conversion to cps.
+    -"element" is the desired element to be used. Use the symbol and mass
+    without space, and in quotes, e.g. "Li6","C12". Use "All" if you just want
+    the entire acquired dataset.
+    
+    
+    Browse files, click and wait for the dataset to load.
+    
+    DO NOT close the tkinter window that appears, else the program will crush. 
+    Minimize it until your work is done.
+    """
+    
+
+    output = pd.DataFrame()
+    
+    for el in elements:
+        loc_s = datain[el]
+        events = find_events(loc_s,100)
+        if not (events.empty):
+            output[el] = events
+            
+            
+        output = output.dropna()
+    
+    # Plotting
+    
+    if (make_plots):
+        number = 0   
+        
+        for element in elements:
+            number = number+1
+            fig = plt.figure(number,figsize =(5,5))
+            ax = fig.add_subplot(1,1,1)
+            ax.set_title(str(element))
+            ax.set_xlabel("Intensity (cps)")
+            ax.set_ylabel("Frequency")
+            ax.hist(output[str(element)],
+                    linewidth = 0.5,
+                    edgecolor = 'white',bins=20)
+            plt.savefig(element)
+    return output
+
+
 
