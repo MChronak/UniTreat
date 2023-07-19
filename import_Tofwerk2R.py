@@ -1,3 +1,8 @@
+from tkinter import *
+from tkinter import filedialog
+import pandas as pd
+import matplotlib.pyplot as plt
+
 def import_tofwerk2R(*elements):
     """Imports data exported from the TofPilot software of TofWerk2R, and creates 1) a pandas datasset ready for further use and 2) a plot of the given data
     
@@ -36,7 +41,7 @@ def import_tofwerk2R(*elements):
     ax.set_ylabel("Intensity (cps)")
     
     for element in elements:
-        ax.plot(data['time (s)'],output[element], alpha = 0.8, linewidth = 0.5)
+        ax.plot(data['datapoints'].values,output[element], alpha = 0.8, linewidth = 0.5)
     ax.legend(output)
     
     return output

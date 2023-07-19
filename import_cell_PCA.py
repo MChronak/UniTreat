@@ -12,6 +12,7 @@ from sklearn import preprocessing
 import matplotlib.pyplot as plt
 import sklearn
 from deconvolute import deconvolute
+import netCDF4 as nc
 
 
 def find_events (dataset,datapoints_per_segment):
@@ -63,11 +64,11 @@ def single_cell_PCA(*elements):
     - Dataset containing all pulses that contained ALL of the asked elements
     - PCA relevant triple-plot (bottom to top): Scree plot, PCA plot, loading score plot
     """
-    from io import io
+    from get_data import io
     filepath = filedialog.askopenfilename(title='Choose file to open',
-                                         filetypes = (("Text Files","*.txt"),
-                                                      ("Python Files","*.py")))
-    ncfile = f'{filepath[:-2]}.nc'
+                                         filetypes = (("HDF5 files","*.h5"),
+                                                      ("netCDF files","*.nc")))
+    ncfile = f'{filepath[:-3]}.nc'
     ds = io(filepath,ncfile)
     waveforms = ds.attrs['NbrWaveforms']
     data = ds.Data.loc[:,list(elements)]
@@ -77,7 +78,7 @@ def single_cell_PCA(*elements):
     for el in elements:
         loc_s = data.loc[:,el].to_dataframe().drop('mass', axis=1).squeeze()
         events = find_events(loc_s,100)
-        output = output.assign(el = events)
+        output[f"{el}"]= events
             
          
     output = output.dropna()

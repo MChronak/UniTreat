@@ -81,6 +81,6 @@ def io(h5file,ncfile):
         
         ds.attrs = attrs
         
-        ds.to_netcdf(ncfile)
+        ds.to_netcdf(ncfile,format ="NETCDF4_CLASSIC")
     
     return ds
