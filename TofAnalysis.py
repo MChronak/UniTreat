@@ -18,7 +18,7 @@ def getTofwerk2R(*elements, make_plot = False) :
     -"output" the desired name of the dataset.
     -"element" is the desired element to be used. Use the mass and symbol/Formula 
     without space, and in quotes, e.g. "6Li","12C".
-    
+    -"make_plot" for a time/intensity overview plot. Default value=False  
     
     Browse files, click and wait for the dataset to load.
     
@@ -66,6 +66,7 @@ def elementalRatio(indata, element_numerator, element_denominator, make_plot = F
     -"datain": preferably a pandas dataframe of the two analytes
     -"Numerator/Denominator Analyte". Use the mass and symbol/Formula 
     without space, and in quotes, e.g. "6Li","12C".
+    -"make_plot" for time/intensity overview plots of both elements. Default value=False  
     """
         
     numerator = indata[element_numerator]
@@ -105,7 +106,7 @@ def elementalRatio(indata, element_numerator, element_denominator, make_plot = F
         ax2.plot(output[str(element_denominator)],
                 linewidth = 0.7)
 
-        plt.savefig("Elemental_Ratios_Elements.png", bbox_inches = 'tight')
+        plt.savefig("Element Ratio.png", bbox_inches = 'tight')
         sns.reset_orig()
     
     return output, numerator_mean, denominator_mean, mean_ratio
@@ -114,22 +115,17 @@ def elementalRatio(indata, element_numerator, element_denominator, make_plot = F
 
 
 def simultaneousEvents(datain,*elements,make_plots=False):
-    """Imports data exported from the TofPilot software of TofWerk2R. Exports
-    histograms of the chosen events for the selected elements.
+    """Identifies the pulses containing simultaneous events of the given elements.
     
     Call by:
-    dataset = import_tofwerk2R(waveforms,element1, element2,....)
+    dataset = import_tofwerk2R(datain,element1, element2,....,make_plot = True/False)
     
     -"dataset" the desired name of the dataset.
-    -"element" is the desired element to be used. Use the symbol and mass
-    without space, and in quotes, e.g. "Li6","C12". Use "All" if you just want
-    the entire acquired dataset.
-    
-    
-    Browse files, click and wait for the dataset to load.
-    
-    DO NOT close the tkinter window that appears, else the program will crush. 
-    Minimize it until your work is done.
+    - datain: preferably a pandas dataframe containing the desired elements
+    -"element" is the desired element to be used. Use the mass and symbol/Formula 
+    without space, and in quotes, e.g. "6Li","12C".
+    -"make_plot" for histograms of the chosen elements, only for the pulses containing all 
+    of the elements of interest. Default value=False.  
     """
     
 
@@ -165,25 +161,20 @@ def simultaneousEvents(datain,*elements,make_plots=False):
 
 
 def ratiosPerCell(datain,element_numerator,element_denominator,make_plot=False):
-    """Imports data exported from the TofPilot software of TofWerk2R, and gives
-    the elemental ratio of the given analytes on a per cell basis.
+    """Calculates the ratio of two elements on a per-identified event basis.
     
     Call by:
-    dataset, mean_ratio = import_tofwerk2R(waveforms,element_numerator,
-    element_denominator)
+    dataset, mean_ratio = ratiosPerCell(datain,element_numerator,
+    element_denominator,make_plot=False)
     
     -"dataset" the desired name of the dataset.
     - "mean_ratio" is the desired name for the mean ratio of the EVENTS of the
       dataset
-    -"element_numerator/denominator" is the desired elements to be used as
-      numerator and denominator respectively. Use the symbol and mass without
-      space, and in quotes, e.g. "Li6","C12".
-    
-    
-    Browse files, click and wait for the dataset to load.
-    
-    DO NOT close the tkinter window that appears, else the program will crush. 
-    Minimize it until your work is done.
+    -"element_numerator/denominator" are the desired elements to be used as
+      numerator and denominator respectively. Use the mass and symbol/Formula 
+      without space, and in quotes, e.g. "6Li","12C".
+    -"make_plot" for histograms of the two elements' identified events and 
+     the histogram of their ratio. Default value=False
     """
     
     output = pd.DataFrame()
@@ -226,7 +217,7 @@ def ratiosPerCell(datain,element_numerator,element_denominator,make_plot=False):
         ax3.hist(Ratio,
                  edgecolor = "white"
                 )
-        plt.savefig("Elemental Ratio")
+        plt.savefig("Element Ratio per cell")
         sns.reset_orig()
     
     mean_ratio = Ratio.mean() #to avoid problems of dividing with 0
@@ -236,22 +227,16 @@ def ratiosPerCell(datain,element_numerator,element_denominator,make_plot=False):
 
 
 def singleCellPCA(datain,*elements):
-    """Imports data exported from the TofPilot software of TofWerk2R, and
-    applied PCA on a per cell basis. 
+    """identifies pulses containing events for the given elements, 
+    and applies PCA. 
     
     Call by:
-    dataset = import_single_cell_PCA(waveforms,element1, element2,....)
+    dataset = import_single_cell_PCA(datain,element1, element2,....)
     
-    -"dataset" the desired name of the dataset.
+    -"dataset" the desired name of the dataset of the identified events containing all 
+    the asked elements.
     -"element" is the desired element to be used. Use the symbol and mass
-    without space, and in quotes, e.g. "Li6","C12". Use "All" if you just want
-    the entire acquired dataset.
-    
-    
-    Browse files, click and wait for the dataset to load.
-    
-    DO NOT close the tkinter window that appears, else the program will crush. 
-    Minimize it until your work is done.
+    without space, and in quotes, e.g. "6Li","12C".
     
     output: 
     
@@ -354,7 +339,7 @@ def singleCellPCA(datain,*elements):
     ax3.vlines(x=0, ymin=-1, ymax=1,color='black', linestyle='-', linewidth=0.75)
     ax3.add_patch(circle1)
     
-    plt.savefig("The brilliancy plot", bbox_inches = 'tight', dpi = 80)
+    plt.savefig("PCA plot", bbox_inches = 'tight', dpi = 80)
     sns.reset_orig()
     return output
 
