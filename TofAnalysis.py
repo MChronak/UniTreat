@@ -7,19 +7,17 @@ import numpy as np
 from .functions import *
 
 def getTofwerk2R(*elements, make_plot = False) :
-    """Imports data exported from the TofPilot software of TofWerk2R, and
-    creates 1) a pandas datasset ready for further use and 2) a plot of the
+    """Imports .h5 files from the TofPilot software of TofWerk2R, and
+    creates 1) a pandas dataframe ready for further use and 2) a plot of the
     given data
     
     Call by:
-    dataset = import_tofwerk2R(waveforms,element1, element2,....)
+    output= import_tofwerk2R(element1, element2,...., make_plot=True/False)
+
     
-    -"dataset" the desired name of the dataset.
-    -"waveforms" is the number of waveforms used during the data acquisition.
-    Necessary for the conversion to cps.
-    -"element" is the desired element to be used. Use the symbol and mass
-    without space, and in quotes, e.g. "Li6","C12". Use "All" if you just want
-    the entire acquired dataset.
+    -"output" the desired name of the dataset.
+    -"element" is the desired element to be used. Use the mass and symbol/Formula 
+    without space, and in quotes, e.g. "6Li","12C".
     
     
     Browse files, click and wait for the dataset to load.
@@ -47,7 +45,7 @@ def getTofwerk2R(*elements, make_plot = False) :
         ax = fig.add_subplot(1,1,1)
         ax.set_title("TRA")
         ax.set_xlabel("Time (sec)")
-        ax.set_ylabel("Intensity (cps)")
+        ax.set_ylabel("Intensity (cts)")
     
         for element in elements:
             ax.plot(data['datapoints'].values,output[element], alpha = 0.8, linewidth = 0.5)
@@ -57,25 +55,17 @@ def getTofwerk2R(*elements, make_plot = False) :
 
 
 def elementalRatio(indata, element_numerator, element_denominator, make_plot = False):
-    """Imports data exported from the TofPilot software of TofWerk2R, and
-    calculates the elemental ratio of given analytes.
+    """Calculates the ratio of two elements on a per-datapoint basis.
     
     Call by:
     output, numerator_mean, denominator_mean, mean_ratio =
-    elemental_ratios(waveforms,"Numerator Analyte","Denominator Analyte")
+    elemental_ratios(datain,"Numerator Analyte","Denominator Analyte")
     
     -"output, numerator_mean, denominator_mean, mean_ratio", insert desired
-    names, but in this order.
-    -"waveforms" is the number of waveforms used during the data acquisition.
-    Necessary for the conversion to cps.
-    -"Numerator/Denominator Analyte". Use the symbols and nominal masses
-    without space, and in quotes, e.g. "Li6","C12".
-    
-    
-    Browse files, click and wait for the dataset to load.
-    
-    DO NOT close the tkinter window that appears, else the program will crush. 
-    Minimize it until your work is done.
+    names, in this order.
+    -"datain": preferably a pandas dataframe of the two analytes
+    -"Numerator/Denominator Analyte". Use the mass and symbol/Formula 
+    without space, and in quotes, e.g. "6Li","12C".
     """
         
     numerator = indata[element_numerator]
@@ -104,11 +94,11 @@ def elementalRatio(indata, element_numerator, element_denominator, make_plot = F
     
         ax.set_title(element_numerator)
         ax.set_xlabel("Time (s)")
-        ax.set_ylabel("Intensity (cps)")
+        ax.set_ylabel("Intensity (cts)")
     
         ax2.set_title(element_denominator)
         ax2.set_xlabel("Time (s)")
-        ax2.set_ylabel("Intensity (cps)")
+        ax2.set_ylabel("Intensity (cts)")
     
         ax.plot(output[str(element_numerator)],
                 linewidth = 0.7)
@@ -131,8 +121,6 @@ def simultaneousEvents(datain,*elements,make_plots=False):
     dataset = import_tofwerk2R(waveforms,element1, element2,....)
     
     -"dataset" the desired name of the dataset.
-    -"waveforms" is the number of waveforms used during the data acquisition.
-    Necessary for the conversion to cps.
     -"element" is the desired element to be used. Use the symbol and mass
     without space, and in quotes, e.g. "Li6","C12". Use "All" if you just want
     the entire acquired dataset.
@@ -166,7 +154,7 @@ def simultaneousEvents(datain,*elements,make_plots=False):
             fig = plt.figure(number,figsize =(5,5))
             ax = fig.add_subplot(1,1,1)
             ax.set_title(str(element))
-            ax.set_xlabel("Intensity (cps)")
+            ax.set_xlabel("Intensity (cts)")
             ax.set_ylabel("Frequency")
             ax.hist(output[str(element)],
                     linewidth = 0.5,
@@ -187,8 +175,6 @@ def ratiosPerCell(datain,element_numerator,element_denominator,make_plot=False):
     -"dataset" the desired name of the dataset.
     - "mean_ratio" is the desired name for the mean ratio of the EVENTS of the
       dataset
-    -"waveforms" is the number of waveforms used during the data acquisition.
-      Necessary for the conversion to cps.
     -"element_numerator/denominator" is the desired elements to be used as
       numerator and denominator respectively. Use the symbol and mass without
       space, and in quotes, e.g. "Li6","C12".
@@ -222,12 +208,12 @@ def ratiosPerCell(datain,element_numerator,element_denominator,make_plot=False):
         plt.subplots_adjust(hspace=0.3)
 
         ax.set_title(element_numerator)
-        ax.set_xlabel("Time (s)")
-        ax.set_ylabel("Intensity (cps)")
+        ax.set_ylabel("Frequency")
+        ax.set_xlabel("Intensity (cts)")
 
         ax2.set_title(element_denominator)
-        ax2.set_xlabel("Time (s)")
-        ax2.set_ylabel("Intensity (cps)")
+        ax2.set_ylabel("Frequency")
+        ax2.set_xlabel("Intensity (cts)")
 
         ax3.set_title("Ratio")
         ax3.set_xlabel("Ratio")
@@ -257,8 +243,6 @@ def singleCellPCA(datain,*elements):
     dataset = import_single_cell_PCA(waveforms,element1, element2,....)
     
     -"dataset" the desired name of the dataset.
-    -"waveforms" is the number of waveforms used during the data acquisition.
-    Necessary for the conversion to cps and accurate event calculation.
     -"element" is the desired element to be used. Use the symbol and mass
     without space, and in quotes, e.g. "Li6","C12". Use "All" if you just want
     the entire acquired dataset.
@@ -369,8 +353,8 @@ def singleCellPCA(datain,*elements):
     ax3.hlines(y=0, xmin=-1, xmax=1,color='black', linestyle='-', linewidth=0.75)
     ax3.vlines(x=0, ymin=-1, ymax=1,color='black', linestyle='-', linewidth=0.75)
     ax3.add_patch(circle1)
-
-    plt.savefig("The brilliancy plot", bbox_inches = 'tight', dpi = 300)
+    
+    plt.savefig("The brilliancy plot", bbox_inches = 'tight', dpi = 80)
     sns.reset_orig()
     return output
 

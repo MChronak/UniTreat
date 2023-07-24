@@ -1,9 +1,10 @@
+import numpy as np
+import pandas as pd
+
 def io(h5file,ncfile):
     import os, sys
     import xarray as xr
     import netCDF4 as nc
-    import numpy as np
-    import pandas as pd
     
     try:
         ds = xr.open_dataset(ncfile)
@@ -123,8 +124,6 @@ def deconvolute (dataset):
     J. Anal. At. Spectrom., 2013, 28, 1220.
     """
     import copy
-    import pandas as pd
-
 
     working_dataset = copy.deepcopy(dataset) 
     event_num = -1 # Resetting the output values
@@ -166,9 +165,6 @@ def find_events (dataset,datapoints_per_segment):
     output:
     events - A dataset containing the datapoints identified as particles.
     """
-    import numpy as np
-    import pandas as pd
-
     
     division = len(dataset.index)/datapoints_per_segment # Defining the number of segments
     seg_number = int(round(division+0.5,0)) # making sure it's round and integer
@@ -214,9 +210,6 @@ def segmenting (dataset,datapoints_per_segment):
     threshold_mean - The average value of the threshold list.
     threshold_std - The standard deviation of the threshold list.
     """
-    import pandas as pd
-    import numpy as np
-
     division = len(dataset.index)/datapoints_per_segment # Defining the number of segments
     seg_number = int(round(division+0.5,0)) # making sure it's round and integer
     split = np.array_split(dataset, seg_number) #splitting the dataset
