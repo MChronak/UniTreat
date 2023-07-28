@@ -346,7 +346,7 @@ def singleCellPCA(datain,*elements):
 
 def segmenting (dataset,datapoints_per_segment):
     """Separates the single-moieties related events from the background in a
-       given dataset, and taking into account potential backgeound drifting.
+       given dataset, and taking into account potential background drifting.
     
     The given *dataset* is split into however many segments of
     *datapoints_per_segment* length. 
