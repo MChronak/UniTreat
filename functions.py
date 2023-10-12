@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
 
-def io(h5file,ncfile):
+def io(h5file):
     import os, sys
     import xarray as xr
     import netCDF4 as nc
-       
+    
     nlist = ['6Li', '7Li', '9Be', '10B', '11B', '12C', '13C', '14N', '15N',
              '16O', 'OH', '18O', 'H2O', 'H3O', '23Na', '24Mg', '25Mg', '26Mg', 'C2H2',
              '27Al', 'C2H3', '28Si', 'N2', '29Si', 'HN2', '30Si', 'NO', '31P', '15NO',
@@ -42,21 +42,21 @@ def io(h5file,ncfile):
              '198Hg', '198Pt', '199Hg', '200Hg', '201Hg', '202Hg', '203Tl', '204Pb',
              '204Hg', '205Tl', '206Pb', '207Pb', '208Pb', '209Bi', '220Bkg', '232Th',
              '234U', '235U', '238U', 'ThO', 'UO']            
-    
+
     ndata = nc.Dataset(h5file)
-    
+
     vnames = [f for f in ndata.groups['ICAP'].variables['TwInfo']]
     vdata = [f for f in ndata.groups['ICAP'].variables['TwData']]
-    
+
     ds = xr.Dataset()
     for i,d in enumerate(vnames):
         dloc = np.asarray(vdata)[:,i]
         ds[d] = xr.DataArray(dloc, dims=['readings'])
-    
+
     pdata = ndata.groups['PeakData'].variables['PeakData'][:]
     pdata = pdata.squeeze()
     pdata = pdata.reshape(pdata.shape[0]*pdata.shape[1], pdata.shape[2])
-    
+
     time = np.arange(pdata.shape[0])
     ds['Data'] = xr.DataArray(pdata, 
                               coords=[time,nlist], 
@@ -66,16 +66,16 @@ def io(h5file,ncfile):
     for at in list(ndata.__dict__):
         nattrs.append(at)
         vattrs.append(ndata.__dict__[at])
-    
+
     attrs = dict()
     for i,v in enumerate(nattrs):
         attrs[v] = vattrs[i]
-    
-    
+
+
     del(attrs['Configuration File Contents'])
-    
+
     ds.attrs = attrs
-        
+    
     return ds
 
 

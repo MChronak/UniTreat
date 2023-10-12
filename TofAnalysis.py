@@ -28,9 +28,9 @@ def getTofwerk2R(*elements, make_plot = False) :
 
     filepath = filedialog.askopenfilename(title='Choose file to open',
                                          filetypes = (("HDF5 files","*.h5"),
-                                                      ("netCDF files","*.nc")))
-    ncfile = f'{filepath[:-3]}.nc'
-    ds = io(filepath,ncfile)
+                                                      ("netCDF files","*.nc"))
+                                         )
+    ds = io(filepath)
     waveforms = ds.attrs['NbrWaveforms']
     data = ds.Data.loc[:,list(elements)]
     
@@ -114,7 +114,7 @@ def elementalRatio(indata, element_numerator, element_denominator, make_plot = F
 
 
 
-def simultaneousEvents(datain,*elements,make_plots=False):
+def simultaneousEvents(datain,*elements,make_plots=False, datapoints_per_segment=100):
     """Identifies the pulses containing simultaneous events of the given elements.
     
     Call by:
@@ -133,7 +133,7 @@ def simultaneousEvents(datain,*elements,make_plots=False):
     
     for el in elements:
         loc_s = datain[el]
-        events = find_events(loc_s,100)
+        events = find_events(loc_s,datapoints_per_segment)
         if not (events.empty):
             output[el] = events
             
@@ -226,7 +226,7 @@ def ratiosPerCell(datain,element_numerator,element_denominator,make_plot=False):
 
 
 
-def singleCellPCA(datain,*elements):
+def singleCellPCA(datain,*elements,datapoints_per_segment=100):
     """identifies pulses containing events for the given elements, 
     and applies PCA. 
     
@@ -252,7 +252,7 @@ def singleCellPCA(datain,*elements):
     
     for el in elements:
         loc_s = datain[el]
-        events = find_events(loc_s,100)
+        events = find_events(loc_s,datapoints_per_segment)
         if not (events.empty):
             output[el] = events
             
