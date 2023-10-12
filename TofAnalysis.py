@@ -114,7 +114,7 @@ def elementalRatio(indata, element_numerator, element_denominator, make_plot = F
 
 
 
-def simultaneousEvents(datain,*elements,make_plots=False, datapoints_per_segment=100):
+def simultaneousEvents(datain,*elements,make_plots=False, datapoints_per_segment=100, threshold_model = 'Poisson'):
     """Identifies the pulses containing simultaneous events of the given elements.
     
     Call by:
@@ -133,7 +133,7 @@ def simultaneousEvents(datain,*elements,make_plots=False, datapoints_per_segment
     
     for el in elements:
         loc_s = datain[el]
-        events = find_events(loc_s,datapoints_per_segment)
+        events = find_events(loc_s,datapoints_per_segment,threshold_model)
         if not (events.empty):
             output[el] = events
             
@@ -226,7 +226,7 @@ def ratiosPerCell(datain,element_numerator,element_denominator,make_plot=False):
 
 
 
-def singleCellPCA(datain,*elements,datapoints_per_segment=100):
+def singleCellPCA(datain,*elements,datapoints_per_segment=100,threshold_model='Poisson'):
     """identifies pulses containing events for the given elements, 
     and applies PCA. 
     
@@ -252,7 +252,7 @@ def singleCellPCA(datain,*elements,datapoints_per_segment=100):
     
     for el in elements:
         loc_s = datain[el]
-        events = find_events(loc_s,datapoints_per_segment)
+        events = find_events(loc_s,datapoints_per_segment,threshold_model)
         if not (events.empty):
             output[el] = events
             
@@ -344,7 +344,7 @@ def singleCellPCA(datain,*elements,datapoints_per_segment=100):
     return output
 
 
-def segmenting (dataset,datapoints_per_segment):
+def segmenting (dataset,datapoints_per_segment, threshold_model='Poisson'):
     """Separates the single-moieties related events from the background in a
        given dataset, and taking into account potential background drifting.
     
@@ -383,7 +383,7 @@ def segmenting (dataset,datapoints_per_segment):
     split_loopcount_dataset = []
     
     for ds in split:
-        background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, threshold = deconvolute(ds)
+        background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, threshold = deconvolute(ds, threshold_model)
         split_total_count += event_num
         split_event_dataset = pd.concat((split_event_dataset,events))
         split_background_dataset = pd.concat((split_background_dataset,background))

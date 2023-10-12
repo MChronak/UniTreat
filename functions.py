@@ -78,9 +78,7 @@ def io(h5file):
     
     return ds
 
-
-
-def deconvolute (dataset):
+def deconvolute (dataset, threshold_model = 'Poisson'):
     """Separates the single-moieties related events from the background in a
     given dataset.
     
@@ -121,27 +119,37 @@ def deconvolute (dataset):
     event_num = -1 # Resetting the output values
     event_count = 0 
     loop_count = 0
-
+             
     while event_num < event_count:
         event_num = event_count
-        threshold = working_dataset.mean() + 2.72 + 3.29*working_dataset.std()
-        reduced_dataset = working_dataset.where(working_dataset<=threshold)
+        
+        if threshold_model == 'Poisson':
+            threshold = working_dataset.mean() + 2.72 + 3.29*working_dataset.std()
+        elif threshold_model == 'Gaussian3':
+            threshold = working_dataset.mean() + 3*working_dataset.std()
+        elif threshold_model == 'Gaussian5':
+            threshold = working_dataset.mean() + 5*working_dataset.std()
+        else:
+            threshold = threshold_model
+            
+        used_threshold = threshold
+        reduced_dataset = working_dataset.where(working_dataset<=used_threshold)
         event_count = reduced_dataset.isna().sum()
         working_dataset = reduced_dataset
         loop_count = loop_count+1
 
-    background = dataset.where(dataset<=threshold).dropna()
-    events = dataset.where(dataset>threshold).dropna()
+    background = dataset.where(dataset<=used_threshold).dropna()
+    events = dataset.where(dataset>used_threshold).dropna()
     dissolved = background.mean()
     dissolved_std = background.std()
     event_mean = events.mean()
     event_std = events.std()
 
-    return background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, threshold
+    return background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, used_threshold
 
 
 
-def find_events (dataset,datapoints_per_segment):
+def find_events (dataset,datapoints_per_segment,threshold_model = 'Poisson'):
     """Separates the single-moieties related events from the background in a given dataset, and taking into account potential backgeound drifting.
     
     The given *dataset* is split into however many segments of *datapoints_per_segment* length. 
@@ -165,7 +173,7 @@ def find_events (dataset,datapoints_per_segment):
     split_event_dataset= pd.Series([], dtype='float64')   # Setting the starting values to 0 or empty, to make sure we avoid mistakes 
     
     for ds in split:
-        background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, threshold = deconvolute(ds)
+        background, events, dissolved, dissolved_std, event_num, event_mean, event_std, loop_count, used_threshold = deconvolute(ds,threshold_model)
 
         if not (events.empty):
             split_event_dataset = pd.concat((split_event_dataset,events))
