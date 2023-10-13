@@ -6,7 +6,7 @@ import seaborn as sns
 import numpy as np
 from .functions import *
 
-def getTofwerk2R(*elements, make_plot = False) :
+def getTofwerk2R(*elements, make_plot = False, plot_name = 'name', export = False, csv_name = 'name') :
     """Imports .h5 files from the TofPilot software of TofWerk2R, and
     creates 1) a pandas dataframe ready for further use and 2) a plot of the
     given data
@@ -50,11 +50,15 @@ def getTofwerk2R(*elements, make_plot = False) :
         for element in elements:
             ax.plot(data['datapoints'].values,output[element], alpha = 0.8, linewidth = 0.5)
         ax.legend(output)
+        plt.savefig(plot_name+".png", bbox_inches = 'tight')
+    
+    if (export):
+        output.to_csv(csv_name+'.csv')
     
     return output
 
 
-def elementalRatio(indata, element_numerator, element_denominator, make_plot = False):
+def elementalRatio(indata, element_numerator, element_denominator, make_plot = False, plot_name = 'name', export = False, csv_name = 'name'):
     """Calculates the ratio of two elements on a per-datapoint basis.
     
     Call by:
@@ -106,15 +110,18 @@ def elementalRatio(indata, element_numerator, element_denominator, make_plot = F
         ax2.plot(output[str(element_denominator)],
                 linewidth = 0.7)
 
-        plt.savefig("Element Ratio.png", bbox_inches = 'tight')
+        plt.savefig(plot_name+".png", bbox_inches = 'tight')
         sns.reset_orig()
-    
+        
+    if (export):
+        output.to_csv(csv_name+'.csv')
+        
     return output, numerator_mean, denominator_mean, mean_ratio
 
 
 
 
-def simultaneousEvents(datain,*elements,make_plots=False, datapoints_per_segment=100, threshold_model = 'Poisson'):
+def simultaneousEvents(datain,*elements,make_plots=False, datapoints_per_segment=100, threshold_model = 'Poisson', export = False, csv_name = 'name'):
     """Identifies the pulses containing simultaneous events of the given elements.
     
     Call by:
@@ -156,11 +163,15 @@ def simultaneousEvents(datain,*elements,make_plots=False, datapoints_per_segment
                     linewidth = 0.5,
                     edgecolor = 'white',bins=20)
             plt.savefig(element)
+            
+    if (export):
+        output.to_csv(csv_name+'.csv')
+        
     return output
 
 
 
-def ratiosPerCell(datain,element_numerator,element_denominator,make_plot=False):
+def ratiosPerCell(datain,element_numerator,element_denominator,make_plot=False, plot_name = 'name', export = False, csv_name = 'name'):
     """Calculates the ratio of two elements on a per-identified event basis.
     
     Call by:
@@ -217,16 +228,19 @@ def ratiosPerCell(datain,element_numerator,element_denominator,make_plot=False):
         ax3.hist(Ratio,
                  edgecolor = "white"
                 )
-        plt.savefig("Element Ratio per cell")
+        plt.savefig(plot_name+".png", bbox_inches='tight')
         sns.reset_orig()
-    
+        
+    if (export):
+        output.to_csv(csv_name+'.csv')
+        
     mean_ratio = Ratio.mean() #to avoid problems of dividing with 0
     return output, mean_ratio
 
 
 
 
-def singleCellPCA(datain,*elements,datapoints_per_segment=100,threshold_model='Poisson'):
+def singleCellPCA(datain,*elements,datapoints_per_segment=100,threshold_model='Poisson', plot_name = 'name', export = False, csv_name = 'name'):
     """identifies pulses containing events for the given elements, 
     and applies PCA. 
     
@@ -339,8 +353,12 @@ def singleCellPCA(datain,*elements,datapoints_per_segment=100,threshold_model='P
     ax3.vlines(x=0, ymin=-1, ymax=1,color='black', linestyle='-', linewidth=0.75)
     ax3.add_patch(circle1)
     
-    plt.savefig("PCA plot", bbox_inches = 'tight', dpi = 80)
+    plt.savefig(plot_name+".png", bbox_inches = 'tight', dpi = 80)
     sns.reset_orig()
+    
+    if (export):
+        output.to_csv(csv_name+'.csv')
+        
     return output
 
 
