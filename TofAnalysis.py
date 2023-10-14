@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from .functions import *
+from scipy.stats import linregress
+import scipy.stats as stats
 
 def getTofwerk2R(*elements, make_plot = False, plot_name = 'name', export = False, csv_name = 'name') :
     """Imports .h5 files from the TofPilot software of TofWerk2R, and
@@ -18,7 +20,10 @@ def getTofwerk2R(*elements, make_plot = False, plot_name = 'name', export = Fals
     -"output" the desired name of the dataset.
     -"element" is the desired element to be used. Use the mass and symbol/Formula 
     without space, and in quotes, e.g. "6Li","12C".
-    -"make_plot" for a time/intensity overview plot. Default value=False  
+    -"make_plot": True/False for a time/intensity overview plot. Default value=False 
+    -"plot_name": string to name your plot file. Default value = name
+    -"export": True/False to export your selected elements as a csv file. Default value = False
+    -"csv_name":string, to name your exported dataset. 
     
     Browse files, click and wait for the dataset to load.
     
@@ -70,7 +75,10 @@ def elementalRatio(indata, element_numerator, element_denominator, make_plot = F
     -"datain": preferably a pandas dataframe of the two analytes
     -"Numerator/Denominator Analyte". Use the mass and symbol/Formula 
     without space, and in quotes, e.g. "6Li","12C".
-    -"make_plot" for time/intensity overview plots of both elements. Default value=False  
+    -"make_plot": True/False for a time/intensity overview plot of both elements. Default value=False 
+    -"plot_name": string to name your plot file. Default value = name
+    -"export": True/False to export your selected elements as a csv file. Default value = False
+    -"csv_name":string, to name your exported dataset. 
     """
         
     numerator = indata[element_numerator]
@@ -131,8 +139,12 @@ def simultaneousEvents(datain,*elements,make_plots=False, datapoints_per_segment
     - datain: preferably a pandas dataframe containing the desired elements
     -"element" is the desired element to be used. Use the mass and symbol/Formula 
     without space, and in quotes, e.g. "6Li","12C".
-    -"make_plot" for histograms of the chosen elements, only for the pulses containing all 
-    of the elements of interest. Default value=False.  
+    -"make_plot": True/False for histograms of the chosen elements, only for the pulses containing all 
+    of the elements of interest. Default value=False.
+    -"export": True/False to export your selected elements as a csv file. Default value = False
+    -"csv_name":string, to name your exported dataset. 
+    -"datapoints_per_segment": number of datapoints to be used per segment when segmenting the dataset. Default value = 100
+    -"threshold_model": choice between Poisson (Default), Gaussian2, Gaussian5, or a user-defined value. To ne used for the threshold determination process. 
     """
     
 
@@ -184,8 +196,11 @@ def ratiosPerCell(datain,element_numerator,element_denominator,make_plot=False, 
     -"element_numerator/denominator" are the desired elements to be used as
       numerator and denominator respectively. Use the mass and symbol/Formula 
       without space, and in quotes, e.g. "6Li","12C".
-    -"make_plot" for histograms of the two elements' identified events and 
+    -"make_plot": True/False for histograms of the two elements' identified events and 
      the histogram of their ratio. Default value=False
+    -"plot_name": string to name your plot file. Default value = name
+    -"export": True/False to export your selected elements as a csv file. Default value = False
+    -"csv_name":string, to name your exported dataset. 
     """
     
     output = pd.DataFrame()
@@ -249,9 +264,14 @@ def singleCellPCA(datain,*elements,datapoints_per_segment=100,threshold_model='P
     
     -"dataset" the desired name of the dataset of the identified events containing all 
     the asked elements.
+    -"datain": the dataset on which to apply PCA, preferably a pandas Dataframe. 
     -"element" is the desired element to be used. Use the symbol and mass
     without space, and in quotes, e.g. "6Li","12C".
-    
+    -"datapoints_per_segment": number of datapoints to be used per segment when segmenting the dataset. Default value = 100
+    -"threshold_model": choice between Poisson (Default), Gaussian2, Gaussian5, or a user-defined value. To ne used for the threshold determination process. 
+    -"plot_name": string to name your plot file. Default value = name
+    -"export": True/False to export your selected elements as a csv file. Default value = False
+    -"csv_name":string, to name your exported dataset. 
     output: 
     
     - Dataset containing all pulses that contained ALL of the asked elements
@@ -372,6 +392,9 @@ def segmenting (dataset,datapoints_per_segment, threshold_model='Poisson'):
     The results for every output value are gathered into their respective
     groups.
     
+    -"datapoints_per_segment": number of datapoints to be used per segment when segmenting the dataset. Default value = 100
+    -"threshold_model": choice between Poisson (Default), Gaussian2, Gaussian5, or a user-defined value. To ne used for the threshold determination process. 
+    
     input: dataset, desired value of segment length
     
     output:
@@ -423,7 +446,80 @@ def segmenting (dataset,datapoints_per_segment, threshold_model='Poisson'):
 
     return background, events, loops, final_threshold, dissolved, dissolved_std, event_num, event_mean, event_std, loop_mean, loop_std, threshold_mean, threshold_std
 
+def calibration_curve(title,element,*Xaxis,make_plot = False, export = False, csv_name = 'name'):
+    """
+    Makes a calibration curve drom the given files, for a given element.
+    
+    Input:
+    - "title" : Has to be a string. Appears at the top of the chart and in the name of the saved file, should you choose to save it.
+    - "element": string, the desired element to be used. Use the symbol and mass
+    without space, and in quotes, e.g. "6Li","12C"..
+    
+    -Xaxis: Use the concentrations of the standards in ppb, as numbers. When run, the program will ask for the relevant files, one by one. 
+    
+    -"make_plot": True/False for a saved image of the calibration curve. Default value=False
+    -"export": True/False to export your dataset values and linear regression values in csv. Default value = False
+    -"csv_name":string, to name your exported csv file. 
 
+    Output: 
+    slope, intercept, r_value, p_value, stderr : The parameters of the resulting equation.
+    Chart depicting the resulting calibration curve in .png form.
+    """
+    plot_dict = {}
+    
+    for value in Xaxis:
+        output = output = pd.DataFrame()
+        filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' standard',
+                                          filetypes = (("HDF5 files","*.h5"),
+                                                      ("netCDF files","*.nc"))
+                                         )
+        ds = io(filepath)
+        waveforms = ds.attrs['NbrWaveforms']
+        data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
+        output[f'{element}'] = data * waveforms
+        mean_value = output.mean()
+        plot_dict[value] = mean_value[0]
+        
+    fig = plt.figure(figsize =(5,5))
+    fig.suptitle(title)
+    ax = fig.add_subplot(1,1,1)
+    ax.plot(*zip(*sorted(plot_dict.items())),'ob')
+    
+    Xplot = np.array(list(plot_dict.keys()))
+    Yplot = np.array(list(plot_dict.values()))
+    
+    slope, intercept, r_value, p_value, stderr = stats.linregress(Xplot,Yplot)
+        
+    mn=min(Xaxis)
+    mx=max(Xaxis)
+    x1=np.linspace(mn,mx)
+    y1=slope*x1+intercept
+    
+    ax.set_ylabel("Intensity (cts)", size=14) # Just axes names
+    ax.set_xlabel("Concentration (ppb)", size=14)
+    
+    ax.plot(x1,y1,'--r')
+    ax.text(1.05*min(Xplot), 0.95*max(Yplot), 'y = ' + '{:.2f}'.format(intercept) + ' + {:.2f}'.format(slope) + 'x', size=14)
+    ax.text(1.05*min(Xplot), 0.9*max(Yplot), '$R^{2}$=' + '{:.4f}'.format((r_value)**2), size=14)
+    if (make_plot):
+        plt.savefig(title, bbox_inches = 'tight', dpi = 300) 
+    
+    if (export):
+        output = pd.DataFrame(plot_dict.items(),
+                              columns = ['Concentration','Intensity']
+                             )
+        output2 = pd.DataFrame([0])
+        output2['Slope'] = slope
+        output2['Intercept'] = intercept
+        output2['R value'] = r_value
+        output2['$R^{2}$ value'] = r_value**2
+        output2['P value'] = p_value
+        output2['Stderr'] = stderr
+        
+        output.to_csv(csv_name+'.csv')
+        output2.to_csv(csv_name+'_LinRegres'+'.csv')
+        
+    return plot_dict, slope, intercept, r_value, p_value, stderr
 
 
 
