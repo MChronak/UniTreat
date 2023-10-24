@@ -550,7 +550,7 @@ def mass_cal_curve(title,element,*Xaxis, flow_rate = 0, tr_eff = 0, make_plot = 
     plot_dict = {}
     
     for value in Xaxis:
-        output = output = pd.DataFrame()
+        output = pd.DataFrame()
         filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' standard',
                                           filetypes = (("HDF5 files","*.h5"),
                                                       ("netCDF files","*.nc"))
