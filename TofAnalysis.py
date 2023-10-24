@@ -468,7 +468,7 @@ def conc_cal_curve(title,element,*Xaxis,make_plot = False, export = False, csv_n
     plot_dict = {}
     
     for value in Xaxis:
-        output = output = pd.DataFrame()
+        output = pd.DataFrame()
         filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' standard',
                                           filetypes = (("HDF5 files","*.h5"),
                                                       ("netCDF files","*.nc"))
