@@ -446,7 +446,7 @@ def segmenting (dataset,datapoints_per_segment, threshold_model='Poisson'):
 
     return background, events, loops, final_threshold, dissolved, dissolved_std, event_num, event_mean, event_std, loop_mean, loop_std, threshold_mean, threshold_std
 
-def calibration_curve(title,element,*Xaxis,make_plot = False, export = False, csv_name = 'name'):
+def conc_cal_curve(title,element,*Xaxis,make_plot = False, export = False, csv_name = 'name'):
     """
     Makes a calibration curve drom the given files, for a given element.
     
@@ -455,7 +455,7 @@ def calibration_curve(title,element,*Xaxis,make_plot = False, export = False, cs
     - "element": string, the desired element to be used. Use the symbol and mass
     without space, and in quotes, e.g. "6Li","12C"..
     
-    -Xaxis: Use the concentrations of the standards in ppb, as numbers. When run, the program will ask for the relevant files, one by one. 
+    -Xaxis: Use the concentrations of the standards in ppm (ug/mL), as numbers. When run, the program will ask for the relevant files, one by one. 
     
     -"make_plot": True/False for a saved image of the calibration curve. Default value=False
     -"export": True/False to export your dataset values and linear regression values in csv. Default value = False
@@ -524,5 +524,87 @@ def calibration_curve(title,element,*Xaxis,make_plot = False, export = False, cs
 
 
 
+def mass_cal_curve(title,element,*Xaxis, flow_rate = 0, tr_eff = 0, make_plot = False, export = False, csv_name = 'name'):
+    """
+    Makes a calibration curve drom the given files, for a given element.
+    
+    Input:
+    - "title" : Has to be a string. Appears at the top of the chart and in the name of the saved file, should you choose to save it.
+    - "element": string, the desired element to be used. Use the symbol and mass
+    without space, and in quotes, e.g. "6Li","12C"..
+    
+    -Xaxis: Use the concentrations of the standards in ppm (ug/mL), as numbers. When run, the program will ask for the relevant files, one by one. 
+    -"flow_rate": The analysis flow rate in mL/ms.
+    -"tr_eff": The transport efficiency value, NOT in percentage form (so 5% = 0.05 for example).
+    -"make_plot": True/False for a saved image of the calibration curve. Default value=False
+    -"export": True/False to export your dataset values and linear regression values in csv. Default value = False
+    -"csv_name":string, to name your exported csv file. 
 
+    Output: 
+    slope, intercept, r_value, p_value, stderr : The parameters of the resulting equation.
+    Chart depicting the resulting calibration curve in .png form.
+    
+    Mass per event calculation based on: 
+    H. E. Pace, N. J. Rogers, C. Jarolimek, V. A. Coleman, C. P. Higgins and J. F. Ranville, Analytical Chemistry, 2011, 83, 9361-9369.
+    """
+    plot_dict = {}
+    
+    for value in Xaxis:
+        output = output = pd.DataFrame()
+        filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' standard',
+                                          filetypes = (("HDF5 files","*.h5"),
+                                                      ("netCDF files","*.nc"))
+                                         )
+        ds = io(filepath)
+        waveforms = ds.attrs['NbrWaveforms']
+        data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
+        output[f'{element}'] = data * waveforms
+        mean_value = output.mean()
+        
+        dwell_time = 0.046*waveforms #in ms
+        
+        mass_per_event = tr_eff*flow_rate*dwell_time*value
+        
+        plot_dict[mass_per_event] = mean_value[0]
+        
+    fig = plt.figure(figsize =(5,5))
+    fig.suptitle(title)
+    ax = fig.add_subplot(1,1,1)
+    ax.plot(*zip(*sorted(plot_dict.items())),'ob')
+    
+    Xplot = np.array(list(plot_dict.keys()))
+    Yplot = np.array(list(plot_dict.values()))
+    
+    slope, intercept, r_value, p_value, stderr = stats.linregress(Xplot,Yplot)
+        
+    mn=min(Xplot)
+    mx=max(Xplot)
+    x1=np.linspace(mn,mx)
+    y1=slope*x1+intercept
+    
+    ax.set_ylabel("Intensity (cts)", size=14) # Just axes names
+    ax.set_xlabel("Mass per event (μg)", size=14)
+    
+    ax.plot(x1,y1,'--r')
+    ax.text(1.05*min(Xplot), 0.95*max(Yplot), 'y = ' + '{:.2f}'.format(intercept) + ' + {:.2f}'.format(slope) + 'x', size=14)
+    ax.text(1.05*min(Xplot), 0.9*max(Yplot), '$R^{2}$=' + '{:.4f}'.format((r_value)**2), size=14)
+    if (make_plot):
+        plt.savefig(title, bbox_inches = 'tight', dpi = 300) 
+    
+    if (export):
+        output = pd.DataFrame(plot_dict.items(),
+                              columns = ['Mass per event','Intensity']
+                             )
+        output2 = pd.DataFrame([0])
+        output2['Slope'] = slope
+        output2['Intercept'] = intercept
+        output2['R value'] = r_value
+        output2['$R^{2}$ value'] = r_value**2
+        output2['P value'] = p_value
+        output2['Stderr'] = stderr
+        
+        output.to_csv(csv_name+'.csv')
+        output2.to_csv(csv_name+'_LinRegres'+'.csv')
+        
+    return plot_dict, slope, intercept, r_value, p_value, stderr
 
