@@ -144,7 +144,7 @@ def simultaneousEvents(datain,*elements,make_plots=False, datapoints_per_segment
     -"export": True/False to export your selected elements as a csv file. Default value = False
     -"csv_name":string, to name your exported dataset. 
     -"datapoints_per_segment": number of datapoints to be used per segment when segmenting the dataset. Default value = 100
-    -"threshold_model": choice between Poisson (Default), Gaussian2, Gaussian5, or a user-defined value. To ne used for the threshold determination process. 
+    -"threshold_model": choice between Poisson (Default), Gaussian3, Gaussian5, or a user-defined value. To ne used for the threshold determination process. 
     """
     
 
@@ -268,7 +268,7 @@ def singleCellPCA(datain,*elements,datapoints_per_segment=100,threshold_model='P
     -"element" is the desired element to be used. Use the symbol and mass
     without space, and in quotes, e.g. "6Li","12C".
     -"datapoints_per_segment": number of datapoints to be used per segment when segmenting the dataset. Default value = 100
-    -"threshold_model": choice between Poisson (Default), Gaussian2, Gaussian5, or a user-defined value. To ne used for the threshold determination process. 
+    -"threshold_model": choice between Poisson (Default), Gaussian3, Gaussian5, or a user-defined value. To ne used for the threshold determination process. 
     -"plot_name": string to name your plot file. Default value = name
     -"export": True/False to export your selected elements as a csv file. Default value = False
     -"csv_name":string, to name your exported dataset. 
@@ -393,7 +393,7 @@ def segmenting (dataset,datapoints_per_segment, threshold_model='Poisson'):
     groups.
     
     -"datapoints_per_segment": number of datapoints to be used per segment when segmenting the dataset. Default value = 100
-    -"threshold_model": choice between Poisson (Default), Gaussian2, Gaussian5, or a user-defined value. To ne used for the threshold determination process. 
+    -"threshold_model": choice between Poisson (Default), Gaussian3, Gaussian5, or a user-defined value. To ne used for the threshold determination process. 
     
     input: dataset, desired value of segment length
     
@@ -608,3 +608,90 @@ def mass_cal_curve(title,element,*Xaxis, flow_rate = 0, tr_eff = 0, make_plot = 
         
     return plot_dict, slope, intercept, r_value, p_value, stderr
 
+def tr_eff_freq(element, flow_rate = 0, numb_conc = 0, std_conc = 0, density = 0, diameter = 0, datapoints_per_segment=100, threshold_model = "Poisson", make_plot = False, plot_name = 'name', export_csv = False, csv_name = 'name'):
+    """
+    Calculates the transport efficiency of the system based on a particle standard of known mass concentration.
+    
+    Input:
+    - "element": The desired element to be used. Use the mass and symbol/Formula without space, and in quotes, e.g. "6Li","12C".
+    -"flow_rate": The flow rate the analysis of the sample was conducted with, in mL/min
+    -"numb_conc": The number concentration of the sample in particles per ml, if known already. If not, ommit entry. 
+    (!) OMMIT ENTRY of the following in numb_conc is entered:
+        -"std_conc": The concentration of the particle std in mg/L. 
+        -"density": The density of the particles, e.g., of the element in g/cm^3. 
+        -"diameter": The diameter of the particles in nm.
+        
+        
+    - -"threshold_model": choice between Poisson (Default), Gaussian3, Gaussian5, or a user-defined value. To ne used for the threshold determination process.
+    -"datapoints_per_segment": number of datapoints to be used per segment when segmenting the dataset. Default value = 100
+    -"make_plot": True/False for a.png file of the histogram of the standard. Default value=False
+    -"plot_name":string, to name your exported image.
+    -"export_csv": True/False to export your sample information in .csv. Default value = False
+    -"csv_name":string, to name your exported csv file. 
+
+    Output: 
+    - The trasport efficiency.
+    - Optional Plot of the particle popuation of the std
+    - Optional export of all relevant values
+    
+    Trasnport efficiency calculation via particle frequency based on: 
+    H. E. Pace, N. J. Rogers, C. Jarolimek, V. A. Coleman, C. P. Higgins and J. F. Ranville, Analytical Chemistry, 2011, 83, 9361-9369.
+    
+    """
+    # Input data
+    output = pd.DataFrame()
+    filepath = filedialog.askopenfilename(title='Choose particle standard file to open',
+                                         filetypes = (("HDF5 files","*.h5"),
+                                                      ("netCDF files","*.nc"))
+                                         )
+    ds = io(filepath)
+    waveforms = ds.attrs['NbrWaveforms']
+    data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
+    output[f'{element}'] = data * waveforms
+    
+    #Determining detected particle frequency 
+    
+    events = find_events(output[element],datapoints_per_segment,threshold_model)
+    analysis_time = 0.046*waveforms*len(output)/60000 # Time in minutes
+    freq = events.count()/analysis_time # pulses per minute    
+
+    # Choice between having or not having the number concentration
+    if numb_conc == 0:
+        mass_per_part = ((np.pi*(diameter**3)*density)/6)*(10**6) # in fg
+        numb_conc = (std_conc/mass_per_part)*10**(9) # particles per mL 
+    else:
+        pass
+    
+    # Determining transport efficiency
+    
+    tr_eff = freq/(flow_rate*numb_conc)
+    
+    # Optional plotting
+    
+    if (make_plot):
+        sns.set()
+        fig = plt.figure(figsize =(5,5))
+        ax = fig.add_subplot(1,1,1)
+        ax.set_title(element)
+        ax.set_xlabel("Intensity (cts)")
+        ax.set_ylabel("Frequency")
+        ax.hist(events,
+                linewidth = 0.5,
+                edgecolor = 'white',bins=20)
+        plt.savefig(plot_name)
+
+    
+    # Optional Exporting
+        
+    if (export_csv):
+        exported_dataset = pd.DataFrame([0])
+        exported_dataset['No. of events'] = events.count()
+        exported_dataset['Analysis Time (min)'] = analysis_time
+        exported_dataset['Std nummber concentration'] = numb_conc
+        exported_dataset['Std mass per particle'] = mass_per_part
+        exported_dataset['Transport efficiency (%)'] = tr_eff*100
+        
+        events.to_csv(csv_name+'_events'+'.csv')
+        exported_dataset.to_csv(csv_name+'_info'+'.csv')
+    
+    return tr_eff 
