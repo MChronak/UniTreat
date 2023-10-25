@@ -695,3 +695,142 @@ def tr_eff_freq(element, flow_rate = 0, numb_conc = 0, std_conc = 0, density = 0
         exported_dataset.to_csv(csv_name+'_info'+'.csv')
     
     return tr_eff 
+
+
+def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datapoints_per_segment=100, threshold_model = "Poisson", make_plot = False, plot_name = 'name', export_csv = False, csv_name = 'name'):
+    """
+    Calculates the transport efficiency of the system based on a particle standard of known size.
+    
+    Input:
+    - "element": The desired element to be used. Use the mass and symbol/Formula without space, and in quotes, e.g. "6Li","12C".
+    -Xaxis: Use the concentrations of the standards in ppm (ug/mL), as numbers. When run, the program will ask for the relevant files, one by one. 
+    -"flow_rate": The flow rate the analysis of the sample was conducted with, in mL/min 
+    -"density": The density of the particles, e.g., of the element in g/cm^3. 
+    -"diameter": The diameter of the particles in nm.
+        
+    -"threshold_model": choice between Poisson (Default), Gaussian3, Gaussian5, or a user-defined value. To ne used for the threshold determination process.
+    -"datapoints_per_segment": number of datapoints to be used per segment when segmenting the dataset. Default value = 100
+    -"make_plot": True/False for a.png file of the histogram of the standard. Default value=False
+    -"plot_name":string, to name your exported image.
+    -"export_csv": True/False to export your sample information in .csv. Default value = False
+    -"csv_name":string, to name your exported csv file. 
+
+    Output: 
+    - The trasport efficiency.
+    - Optional Plot of the particle popuation of the std.
+    - Optional export of all relevant values.
+    
+    Trasnport efficiency calculation via particle frequency based on: 
+    H. E. Pace, N. J. Rogers, C. Jarolimek, V. A. Coleman, C. P. Higgins and J. F. Ranville, Analytical Chemistry, 2011, 83, 9361-9369.
+    
+    """
+    
+    output = pd.DataFrame()
+    part_cal_dict = {}
+    
+    # Ask for Particle Calibration Blank
+    filepath = filedialog.askopenfilename(title='Choose particle calibration blank file to open',
+                                         filetypes = (("HDF5 files","*.h5"),
+                                                      ("netCDF files","*.nc"))
+                                         )
+    ds = io(filepath)
+    waveforms = ds.attrs['NbrWaveforms']
+    data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
+    output["Blank"] = data * waveforms
+    blank = output["Blank"].mean()
+    #print("blank mean", blank)
+    
+    part_cal_dict[0] = blank   
+    
+    
+    # Ask for Particle Calibration STD
+    mass_per_part = ((np.pi*(diameter**3)*density)/6)*(10**6) # in fg
+    #print("mass per part", mass_per_part)
+    
+    filepath = filedialog.askopenfilename(title='Choose particle calibration standard file to open',
+                                         filetypes = (("HDF5 files","*.h5"),
+                                                      ("netCDF files","*.nc"))
+                                         )
+    ds = io(filepath)
+    waveforms = ds.attrs['NbrWaveforms']
+    data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
+    output["Particle STD"] = data * waveforms
+    
+    events = find_events(output["Particle STD"],datapoints_per_segment,threshold_model)
+    particle_mean = events.mean()
+    #print("particle mean intensity=", particle_mean)
+    #print("particle std num =", events.count())
+    
+    part_cal_dict[diameter] = particle_mean
+    
+    #print("particle dictionary:", part_cal_dict)
+    
+    Xparts = np.array(list(part_cal_dict.keys()))
+    Yparts = np.array(list(part_cal_dict.values()))
+    
+    parts_slope, parts_intercept, parts_r_value, parts_p_value, parts_stderr = stats.linregress(Xparts,Yparts)
+    
+    #print("particle slope",parts_slope)
+
+    
+    # Ask for Liquid calibration STD
+    plot_dict = {}
+    for value in Xaxis:
+        filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' liquid standard',
+                                          filetypes = (("HDF5 files","*.h5"),
+                                                      ("netCDF files","*.nc"))
+                                         )
+        ds = io(filepath)
+        waveforms = ds.attrs['NbrWaveforms']
+        data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
+        output[f'{value}'] = data * waveforms
+        mean_value = (data*waveforms).mean() # mean intensity, Ydiss
+        dwell_time = 0.046*waveforms #in ms
+        mass_per_dwell = flow_rate*dwell_time*value # Wdiss
+        plot_dict[mass_per_dwell] = mean_value
+    #print("liquid dict", plot_dict)    
+    #print(output)
+    
+    Xplot = np.array(list(plot_dict.keys()))
+    Yplot = np.array(list(plot_dict.values()))
+    
+    slope, intercept, r_value, p_value, stderr = stats.linregress(Xplot,Yplot)
+    
+    #print("liquid slope", slope)
+    
+    # Determining transport efficiency
+    
+    tr_eff = parts_slope/slope
+    
+    #print("TE =", tr_eff)
+    
+    # Optional plotting
+    
+    if (make_plot):
+        sns.set()
+        fig = plt.figure(figsize =(5,5))
+        ax = fig.add_subplot(1,1,1)
+        ax.set_title(element)
+        ax.set_xlabel("Intensity (cts)")
+        ax.set_ylabel("Frequency")
+        ax.hist(events,
+                linewidth = 0.5,
+                edgecolor = 'white',bins=20)
+        plt.savefig(plot_name)
+
+    
+    # Optional Exporting
+        
+    if (export_csv):
+        exported_dataset = pd.DataFrame([0])
+        exported_dataset['No. of events'] = events.count()
+        exported_dataset['Std mass per particle'] = mass_per_part
+        exported_dataset['Transport efficiency (%)'] = tr_eff*100
+        
+        events.to_csv(csv_name+'_events'+'.csv')
+        output.to_csv(csv_name+'_datasets'+'.csv')
+        exported_dataset.to_csv(csv_name+'_info'+'.csv')
+        
+        #print(events)
+    
+    return tr_eff 
