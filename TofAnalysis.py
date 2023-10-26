@@ -496,7 +496,7 @@ def conc_cal_curve(title,element,*Xaxis,make_plot = False, export = False, csv_n
     y1=slope*x1+intercept
     
     ax.set_ylabel("Intensity (cts)", size=14) # Just axes names
-    ax.set_xlabel("Concentration (ppb)", size=14)
+    ax.set_xlabel("Concentration (ppm)", size=14)
     
     ax.plot(x1,y1,'--r')
     ax.text(1.05*min(Xplot), 0.95*max(Yplot), 'y = ' + '{:.2f}'.format(intercept) + ' + {:.2f}'.format(slope) + 'x', size=14)
@@ -533,7 +533,8 @@ def mass_cal_curve(title,element,*Xaxis, flow_rate = 0, tr_eff = 0, make_plot = 
     - "element": string, the desired element to be used. Use the symbol and mass
     without space, and in quotes, e.g. "6Li","12C"..
     
-    -Xaxis: Use the concentrations of the standards in ppm (ug/mL), as numbers. When run, the program will ask for the relevant files, one by one. 
+    -Xaxis: Use the concentrations of the standards in ppm (ug/mL), as numbers. When run, the program will ask for the relevant files, one by one.
+    
     -"flow_rate": The analysis flow rate in mL/ms.
     -"tr_eff": The transport efficiency value, NOT in percentage form (so 5% = 0.05 for example).
     -"make_plot": True/False for a saved image of the calibration curve. Default value=False
@@ -704,6 +705,8 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
     Input:
     - "element": The desired element to be used. Use the mass and symbol/Formula without space, and in quotes, e.g. "6Li","12C".
     -Xaxis: Use the concentrations of the standards in ppm (ug/mL), as numbers. When run, the program will ask for the relevant files, one by one. 
+    (!) Make sure all recording are of the same length 
+
     -"flow_rate": The flow rate the analysis of the sample was conducted with, in mL/min 
     -"density": The density of the particles, e.g., of the element in g/cm^3. 
     -"diameter": The diameter of the particles in nm.
@@ -720,7 +723,7 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
     - Optional Plot of the particle popuation of the std.
     - Optional export of all relevant values.
     
-    Trasnport efficiency calculation via particle frequency based on: 
+    Trasnport efficiency calculation via particle size based on: 
     H. E. Pace, N. J. Rogers, C. Jarolimek, V. A. Coleman, C. P. Higgins and J. F. Ranville, Analytical Chemistry, 2011, 83, 9361-9369.
     
     """
@@ -824,7 +827,8 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
     if (export_csv):
         exported_dataset = pd.DataFrame([0])
         exported_dataset['No. of events'] = events.count()
-        exported_dataset['Std mass per particle'] = mass_per_part
+        exported_dataset['STD mean Intensity'] = events.mean()
+        exported_dataset['STD mass per particle'] = mass_per_part
         exported_dataset['Transport efficiency (%)'] = tr_eff*100
         
         events.to_csv(csv_name+'_events'+'.csv')
