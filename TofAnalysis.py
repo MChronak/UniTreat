@@ -838,3 +838,96 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
         #print(events)
     
     return tr_eff 
+
+
+def mass_hist(element, slope = 0, ion_efficiency =1, mass_fraction = 1, density = 0, datapoints_per_segment=100, threshold_model = "Poisson", make_plot = False, plot_name = 'name', export_csv = False, csv_name = 'name'):
+    """
+    Makes a mass or size distribution for the sample. The function will ask for the blank file, and then the sample file.  
+    
+    Input:
+    - "element": The desired element to be used. Use the mass and symbol/Formula without space, and in quotes, e.g. "6Li","12C".
+    - "slope": the slope of the Intensity/mass per event calibration curve.
+    - ion_efficiency : the particle ionization efficiency. It's conventionally set to 1, but if the case is different, can be changed. 
+    - mass_fraction: the mass fraction of the analyzed element in the analyzed particles. Preset to 1, e.g., the particles are consedered to consist of only the analyzed element.
+    - density : the density of the analyzed element, in g/cm^3. Use optionally to obtain size distribution instead of mass distribution.        
+    -"threshold_model": choice between Poisson (Default), Gaussian3, Gaussian5, or a user-defined value. To ne used for the threshold determination process.
+    -"datapoints_per_segment": number of datapoints to be used per segment when segmenting the dataset. Default value = 100
+    -"make_plot": True/False for a.png file of the histogram of the standard. Default value=False
+    -"plot_name":string, to name your exported image.
+    -"export_csv": True/False to export your sample information in .csv. Default value = False
+    -"csv_name":string, to name your exported csv file. 
+
+    Output: 
+    - Calculated Mass or size per event, based on whether density was given or not. 
+    - Optional Plot of the particle popuation.
+    - Optional export of the output to a csv file.
+    
+    Mass conversion calculations based on: 
+    H. E. Pace, N. J. Rogers, C. Jarolimek, V. A. Coleman, C. P. Higgins and J. F. Ranville, Analytical Chemistry, 2011, 83, 9361-9369.
+    """
+    
+    # Ask for Blank
+    # Claculate the blank for the the elements
+    
+    filepath = filedialog.askopenfilename(title='Choose blank file to open',
+                                         filetypes = (("HDF5 files","*.h5"),
+                                                      ("netCDF files","*.nc"))
+                                         )
+    ds = io(filepath)
+    waveforms = ds.attrs['NbrWaveforms']
+    data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
+    I_blank = (data * waveforms).mean()
+    
+    
+    # Ask for the file in question
+    # Identify the events on all asked elements.
+    filepath2 = filedialog.askopenfilename(title='Choose sample file to open',
+                                         filetypes = (("HDF5 files","*.h5"),
+                                                      ("netCDF files","*.nc"))
+                                         )
+    ds2 = io(filepath2)
+    waveforms2 = ds2.attrs['NbrWaveforms']
+    data2 = ds2.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
+    element_signal = data2*waveforms2
+    
+    events_output = pd.DataFrame()
+    
+    events = find_events(element_signal,datapoints_per_segment,threshold_model)
+    events_output[element] = events
+    
+    
+    
+    # Calculate mass per event
+    
+    mass_per_event = ((((events_output)/I_blank)/ion_efficiency)/slope)/mass_fraction
+    print(mass_per_event)
+    
+    # Choice between particle size or mass
+    if density == 0:
+        output = mass_per_event
+        Xlabel = "Mass per event (μg)"
+        
+    
+    else:   
+        diameter = ((6*(mass_per_event))/(np.pi*density))**(1/3)
+        output = diameter
+        Xlabel = "Size (nm)"
+            
+    #Optional plotting        
+    if (make_plot):
+        sns.set()
+        fig = plt.figure(figsize =(5,5))
+        ax = fig.add_subplot(1,1,1)
+        ax.set_title(element)
+        ax.set_xlabel(Xlabel) #Need to check units
+        ax.set_ylabel("Frequency")
+        ax.hist(output,
+                linewidth = 0.5,
+                edgecolor = 'white',bins=20)
+
+        plt.savefig(plot_name)
+        
+    if (export_csv):
+        output.to_csv(csv_name+'.csv')  
+        
+    return output
