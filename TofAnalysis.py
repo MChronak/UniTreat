@@ -847,9 +847,9 @@ def mass_hist(element, slope = 0, ion_efficiency =1, mass_fraction = 1, density 
     Input:
     - "element": The desired element to be used. Use the mass and symbol/Formula without space, and in quotes, e.g. "6Li","12C".
     - "slope": the slope of the Intensity/mass per event calibration curve.
-    - ion_efficiency : the particle ionization efficiency. It's conventionally set to 1, but if the case is different, can be changed. 
-    - mass_fraction: the mass fraction of the analyzed element in the analyzed particles. Preset to 1, e.g., the particles are consedered to consist of only the analyzed element.
-    - density : the density of the analyzed element, in g/cm^3. Use optionally to obtain size distribution instead of mass distribution.        
+    - "ion_efficiency" : the particle ionization efficiency. It's conventionally set to 1, but if the case is different, can be changed. 
+    - "mass_fraction": the mass fraction of the analyzed element in the analyzed particles. Preset to 1, e.g., the particles are consedered to consist of only the analyzed element.
+    - "density" : the density of the analyzed element, in g/cm^3. Use optionally to obtain size distribution instead of mass distribution.        
     -"threshold_model": choice between Poisson (Default), Gaussian3, Gaussian5, or a user-defined value. To ne used for the threshold determination process.
     -"datapoints_per_segment": number of datapoints to be used per segment when segmenting the dataset. Default value = 100
     -"make_plot": True/False for a.png file of the histogram of the standard. Default value=False
@@ -931,3 +931,47 @@ def mass_hist(element, slope = 0, ion_efficiency =1, mass_fraction = 1, density 
         output.to_csv(csv_name+'.csv')  
         
     return output
+
+
+def biomolecule_mass(datain, biomol_mr, metal_ar, numb_atoms_per_tag, numb_tags_per_biomol, make_plot = False, plot_name = 'name', export_csv = False, csv_name = 'name'):
+    """
+    Calculates the mass of a biomolecule per event, based on the detected mass per event of a metal tag.
+    
+    Input:
+    - "datain": Mass per event in μg, calculated from previous command
+    - "biomol_mr": The molecular weight of the biomolecule.
+    - "metal_ar" : The atomic eweight of the tag metal. 
+    - "numb_atoms_per_tag": The number of atoms per metal tag.
+    - "numb_tags_per_biomol": The number of tags per biomolecule. 
+    
+    -"make_plot": True/False for a.png file of the histogram of the standard. Default value=False
+    -"plot_name":string, to name your exported image.
+    -"export_csv": True/False to export your sample information in .csv. Default value = False
+    -"csv_name":string, to name your exported csv file. 
+
+    Output: 
+    - Calculated biomolecule mass per event.
+    - Optional Plot of the biomolecule mass per event.
+    - Optional export of the output to a csv file.
+    
+    """
+    
+    biom_mass_per_event = datain * (biomol_mr/(metal_ar*numb_atoms_per_tag*numb_tags_per_biomol))
+    
+    if (make_plot):
+        sns.set()
+        fig = plt.figure(figsize =(5,5))
+        ax = fig.add_subplot(1,1,1)
+        ax.set_title(plot_name)
+        ax.set_xlabel("Biomolecule mass per event (μg)") #Need to check units
+        ax.set_ylabel("Frequency")
+        ax.hist(biom_mass_per_event,
+                linewidth = 0.5,
+                edgecolor = 'white',bins=20)
+
+        plt.savefig(plot_name)
+        
+    if (export_csv):
+        biom_mass_per_event.to_csv(csv_name+'.csv')  
+        
+    return biom_mass_per_event
