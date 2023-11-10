@@ -70,17 +70,17 @@ def UniTreat(*elements,
     tr_eff = 0
     if (TE_freq):
         # Input data
-        output = pd.DataFrame()
+        TE_output = pd.DataFrame()
         te_filepath = part_std_strings[0]
         ds = io(te_filepath)
         waveforms = ds.attrs['NbrWaveforms']
         data = ds.Data.loc[:,TE_element].to_dataframe().drop('mass', axis=1).squeeze()
-        output["Particle STD"] = data * waveforms
+        TE_output["Particle STD"] = data * waveforms
         
         #Determining detected particle frequency 
         
-        events = find_events(output["Particle STD"],datapoints_per_segment,threshold_model)
-        analysis_time = 0.046*waveforms*len(output)/60000 # Time in minutes
+        events = find_events(TE_output["Particle STD"],datapoints_per_segment,threshold_model)
+        analysis_time = 0.046*waveforms*len(TE_output)/60000 # Time in minutes
         freq = events.count()/analysis_time # pulses per minute
         
         # Choice between having or not having the number concentration
@@ -93,7 +93,7 @@ def UniTreat(*elements,
         tr_eff = freq/(flow_rate*numb_conc)
         
     if (TE_size):
-        output = pd.DataFrame()
+        TE_output = pd.DataFrame()
         part_cal_dict = {}
         
         # Particle calibration blank
@@ -103,8 +103,8 @@ def UniTreat(*elements,
         ds = io(blank_filepath)
         waveforms = ds.attrs['NbrWaveforms']
         data = ds.Data.loc[:,TE_element].to_dataframe().drop('mass', axis=1).squeeze()
-        output["Blank"] = data * waveforms
-        blank = output["Blank"].mean()
+        TE_output["Blank"] = data * waveforms
+        blank = TE_output["Blank"].mean()
 
         part_cal_dict[0] = blank   
         
@@ -118,9 +118,9 @@ def UniTreat(*elements,
         ds = io(te_filepath)
         waveforms = ds.attrs['NbrWaveforms']
         data = ds.Data.loc[:,TE_element].to_dataframe().drop('mass', axis=1).squeeze()
-        output["Particle STD"] = data * waveforms
+        TE_output["Particle STD"] = data * waveforms
         
-        events = find_events(output["Particle STD"],datapoints_per_segment,threshold_model)
+        events = find_events(TE_output["Particle STD"],datapoints_per_segment,threshold_model)
         particle_mean = events.mean()
         
         part_cal_dict[diameter] = particle_mean
@@ -139,14 +139,14 @@ def UniTreat(*elements,
             ds = io(std_filepath)
             waveforms = ds.attrs['NbrWaveforms']
             data = ds.Data.loc[:,TE_element].to_dataframe().drop('mass', axis=1).squeeze()
-            output[f'{value}'] = data * waveforms
+            concentration = int(value.rstrip("_cali_std.h5").lstrip(folder +"/\\"))
+            TE_output[concentration] = data * waveforms
             mean_value = (data*waveforms).mean() # mean intensity, Ydiss
             dwell_time = 0.046*waveforms #in ms
-            concentration = int(value.rstrip("_cali_std.h5").lstrip(folder +"/\\"))
             mass_per_dwell = flow_rate*dwell_time*concentration 
             plot_dict[mass_per_dwell] = mean_value
-        #print("liquid dict", plot_dict)    
-        #print(output)
+       # print("liquid dict", plot_dict)    
+        #print(TE_output)
 
         Xplot = np.array(list(plot_dict.keys()))
         Yplot = np.array(list(plot_dict.values()))
@@ -157,27 +157,54 @@ def UniTreat(*elements,
     
         tr_eff = parts_slope/slope
         
+        ###
+        ### Uo to here, TE_output is the datasets of blank, particle std and liquid std
+        ###
+        
+        # Optional plotting for the transport efficiency standard
+    
+    #if (make_plot):
+    #    sns.set()
+    #    fig = plt.figure(figsize =(5,5))
+    #    ax = fig.add_subplot(1,1,1)
+    #    ax.set_title(TE_element)
+    #    ax.set_xlabel("Intensity (cts)")
+    #    ax.set_ylabel("Frequency")
+    #    ax.hist(events,
+    #            linewidth = 0.5,
+    #            edgecolor = 'white',bins=20)
+    #    plt.savefig(plot_name)
         
         
-        
-        
-        
-        
-        # Yo, what if I go with startswith for the different concentrations
-        
-        
-        
+        # TRA plotting
+    for sample in sample_strings:     
+        ds = io(sample)
+        waveforms = ds.attrs['NbrWaveforms']
+        data = ds.Data.loc[:,list(elements)]
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        sample_output = pd.DataFrame()
+
+
+        for el in elements:
+            loc_s = data.loc[:, el].to_dataframe().drop('mass', axis=1).squeeze()
+            sample_output[f'{el}'] = loc_s * waveforms
+
+        if (make_plot):
+            fig = plt.figure(figsize =(15,5))
+            ax = fig.add_subplot(1,1,1)
+            ax.set_title(sample.rstrip(".h5").lstrip(folder +"/\\"))
+            ax.set_xlabel("Time (sec)")
+            ax.set_ylabel("Intensity (cts)")
+
+            for element in elements:
+                ax.plot(data['datapoints'].values,sample_output[element], alpha = 0.8, linewidth = 0.5)
+            ax.legend(sample_output)
+            plt.savefig(plot_name+sample.rstrip(".h5").lstrip(folder +"/\\")+".png", bbox_inches = 'tight')
+    
+    
+
+    
+    
     #ds = io(filenames[0])
     #waveforms = ds.attrs['NbrWaveforms']
     #data = ds.Data.loc[:,list(elements)]
