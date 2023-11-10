@@ -64,7 +64,7 @@ def UniTreat(*elements,
         elif "cali_std" in name:
             cali_std_strings.append(name)
         else:
-            sample_strings.append(name)
+            sample_strings.append(name)   
     
     # Transport Efficiency Calculations 
     tr_eff = 0
@@ -75,11 +75,11 @@ def UniTreat(*elements,
         ds = io(te_filepath)
         waveforms = ds.attrs['NbrWaveforms']
         data = ds.Data.loc[:,TE_element].to_dataframe().drop('mass', axis=1).squeeze()
-        output[f'{TE_element}'] = data * waveforms
+        output["Particle STD"] = data * waveforms
         
         #Determining detected particle frequency 
         
-        events = find_events(output[TE_element],datapoints_per_segment,threshold_model)
+        events = find_events(output["Particle STD"],datapoints_per_segment,threshold_model)
         analysis_time = 0.046*waveforms*len(output)/60000 # Time in minutes
         freq = events.count()/analysis_time # pulses per minute
         
@@ -93,10 +93,69 @@ def UniTreat(*elements,
         tr_eff = freq/(flow_rate*numb_conc)
         
     if (TE_size):
-        pass
-            
+        output = pd.DataFrame()
+        part_cal_dict = {}
         
+        # Particle calibration blank
         
+        blank_filepath = blank_strings[0]
+        
+        ds = io(blank_filepath)
+        waveforms = ds.attrs['NbrWaveforms']
+        data = ds.Data.loc[:,TE_element].to_dataframe().drop('mass', axis=1).squeeze()
+        output["Blank"] = data * waveforms
+        blank = output["Blank"].mean()
+
+        part_cal_dict[0] = blank   
+        
+        # Calculate mass per particle
+        
+        mass_per_part = ((np.pi*(diameter**3)*density)/6)*(10**6) # in fg
+        
+        # Let's take the particle calibration file
+        
+        te_filepath = part_std_strings[0]
+        ds = io(te_filepath)
+        waveforms = ds.attrs['NbrWaveforms']
+        data = ds.Data.loc[:,TE_element].to_dataframe().drop('mass', axis=1).squeeze()
+        output["Particle STD"] = data * waveforms
+        
+        events = find_events(output["Particle STD"],datapoints_per_segment,threshold_model)
+        particle_mean = events.mean()
+        
+        part_cal_dict[diameter] = particle_mean
+        
+        Xparts = np.array(list(part_cal_dict.keys()))
+        Yparts = np.array(list(part_cal_dict.values()))
+    
+        parts_slope, parts_intercept, parts_r_value, parts_p_value, parts_stderr = stats.linregress(Xparts,Yparts)
+        
+        # Ask for Liquid calibration STD
+        plot_dict = {}
+        std_num = -1
+        for value in cali_std_strings:
+            std_num = std_num + 1
+            std_filepath = cali_std_strings[std_num]
+            ds = io(std_filepath)
+            waveforms = ds.attrs['NbrWaveforms']
+            data = ds.Data.loc[:,TE_element].to_dataframe().drop('mass', axis=1).squeeze()
+            output[f'{value}'] = data * waveforms
+            mean_value = (data*waveforms).mean() # mean intensity, Ydiss
+            dwell_time = 0.046*waveforms #in ms
+            concentration = int(value.rstrip("_cali_std.h5").lstrip(folder +"/\\"))
+            mass_per_dwell = flow_rate*dwell_time*concentration 
+            plot_dict[mass_per_dwell] = mean_value
+        #print("liquid dict", plot_dict)    
+        #print(output)
+
+        Xplot = np.array(list(plot_dict.keys()))
+        Yplot = np.array(list(plot_dict.values()))
+
+        slope, intercept, r_value, p_value, stderr = stats.linregress(Xplot,Yplot)
+        
+        # Determining transport efficiency
+    
+        tr_eff = parts_slope/slope
         
         
         

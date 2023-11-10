@@ -13,9 +13,7 @@ def getTofwerk2R(*elements, make_plot = False, plot_name = 'name', export = Fals
     creates 1) a pandas dataframe ready for further use and 2) a plot of the
     given data
     
-    Call by:
-    output= import_tofwerk2R(element1, element2,...., make_plot=True/False)
-
+    Input:
     
     -"output" the desired name of the dataset.
     -"element" is the desired element to be used. Use the mass and symbol/Formula 
