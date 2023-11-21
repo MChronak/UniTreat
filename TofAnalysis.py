@@ -453,7 +453,7 @@ def conc_cal_curve(title,element,*Xaxis,make_plot = False, export = False, csv_n
     - "element": string, the desired element to be used. Use the symbol and mass
     without space, and in quotes, e.g. "6Li","12C"..
     
-    -Xaxis: Use the concentrations of the standards in ppm (ug/mL), as numbers. When run, the program will ask for the relevant files, one by one. 
+    -Xaxis: Use the concentrations of the standards in ppb (ng/mL), as numbers. When run, the program will ask for the relevant files, one by one. 
     
     -"make_plot": True/False for a saved image of the calibration curve. Default value=False
     -"export": True/False to export your dataset values and linear regression values in csv. Default value = False
@@ -465,26 +465,29 @@ def conc_cal_curve(title,element,*Xaxis,make_plot = False, export = False, csv_n
     """
     plot_dict = {}
     
-    for value in Xaxis:
+    for value in Xaxis: # value is supposedly given in ug/ml (ppm) by the user
         output = pd.DataFrame()
-        filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' standard',
+        filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' ppb standard',
                                           filetypes = (("HDF5 files","*.h5"),
                                                       ("netCDF files","*.nc"))
                                          )
         ds = io(filepath)
         waveforms = ds.attrs['NbrWaveforms']
         data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
-        output[f'{element}'] = data * waveforms
+        output[f'{element}'] = data * waveforms # 1000/(0.046*waveforms) # to convert to cps
         mean_value = output.mean()
         plot_dict[value] = mean_value[0]
-        
+    #print("dictionary:", plot_dict)    
     fig = plt.figure(figsize =(5,5))
     fig.suptitle(title)
     ax = fig.add_subplot(1,1,1)
     ax.plot(*zip(*sorted(plot_dict.items())),'ob')
+    #print("sorted dictionary:", *zip(*sorted(plot_dict.items())))
     
     Xplot = np.array(list(plot_dict.keys()))
     Yplot = np.array(list(plot_dict.values()))
+    #print("X:",Xplot)
+    #print("Y:",Yplot)
     
     slope, intercept, r_value, p_value, stderr = stats.linregress(Xplot,Yplot)
         
@@ -494,7 +497,7 @@ def conc_cal_curve(title,element,*Xaxis,make_plot = False, export = False, csv_n
     y1=slope*x1+intercept
     
     ax.set_ylabel("Intensity (cts)", size=14) # Just axes names
-    ax.set_xlabel("Concentration (ppm)", size=14)
+    ax.set_xlabel("Concentration (ppb)", size=14)
     
     ax.plot(x1,y1,'--r')
     ax.text(1.05*min(Xplot), 0.95*max(Yplot), 'y = ' + '{:.2f}'.format(intercept) + ' + {:.2f}'.format(slope) + 'x', size=14)
@@ -548,7 +551,7 @@ def mass_cal_curve(title,element,*Xaxis, flow_rate = 0, tr_eff = 0, make_plot = 
     """
     plot_dict = {}
     
-    for value in Xaxis:
+    for value in Xaxis: # value is supposedly given in ug/ml (ppm) by the user
         output = pd.DataFrame()
         filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' standard',
                                           filetypes = (("HDF5 files","*.h5"),
@@ -560,7 +563,7 @@ def mass_cal_curve(title,element,*Xaxis, flow_rate = 0, tr_eff = 0, make_plot = 
         output[f'{element}'] = data * waveforms
         mean_value = output.mean()
         
-        dwell_time = 0.046*waveforms #in ms
+        dwell_time = 0.046*waveforms #in ms .Tested with new datasets, still holds true
         
         mass_per_event = tr_eff*flow_rate*dwell_time*value
         
@@ -569,7 +572,7 @@ def mass_cal_curve(title,element,*Xaxis, flow_rate = 0, tr_eff = 0, make_plot = 
     fig = plt.figure(figsize =(5,5))
     fig.suptitle(title)
     ax = fig.add_subplot(1,1,1)
-    ax.plot(*zip(*sorted(plot_dict.items())),'ob')
+    ax.plot(*zip(*sorted(plot_dict.items())),'ob') # makes two lists from the items of the dictionary, matching the masses with the mean values
     
     Xplot = np.array(list(plot_dict.keys()))
     Yplot = np.array(list(plot_dict.values()))
@@ -776,7 +779,7 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
     
     # Ask for Liquid calibration STD
     plot_dict = {}
-    for value in Xaxis:
+    for value in Xaxis: # value is supposedly given in ug/ml (ppm) by the user
         filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' liquid standard',
                                           filetypes = (("HDF5 files","*.h5"),
                                                       ("netCDF files","*.nc"))
