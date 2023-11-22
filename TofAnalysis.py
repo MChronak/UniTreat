@@ -474,7 +474,7 @@ def conc_cal_curve(title,element,*Xaxis,make_plot = False, export = False, csv_n
         ds = io(filepath)
         waveforms = ds.attrs['NbrWaveforms']
         data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
-        output[f'{element}'] = data * waveforms # 1000/(0.046*waveforms) # to convert to cps
+        output[f'{element}'] = (data * waveforms * 1000)/(0.046*waveforms) # to convert to cps. parenthesis is the dwell time in milliseconds.
         mean_value = output.mean()
         plot_dict[value] = mean_value[0]
     #print("dictionary:", plot_dict)    
@@ -551,7 +551,7 @@ def mass_cal_curve(title,element,*Xaxis, flow_rate = 0, tr_eff = 0, make_plot = 
     """
     plot_dict = {}
     
-    for value in Xaxis: # value is supposedly given in ug/ml (ppm) by the user
+    for value in Xaxis: # value is supposedly given in ug/ml (ppb) by the user
         output = pd.DataFrame()
         filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' standard',
                                           filetypes = (("HDF5 files","*.h5"),
@@ -560,7 +560,7 @@ def mass_cal_curve(title,element,*Xaxis, flow_rate = 0, tr_eff = 0, make_plot = 
         ds = io(filepath)
         waveforms = ds.attrs['NbrWaveforms']
         data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
-        output[f'{element}'] = data * waveforms
+        output[f'{element}'] = (data * waveforms * 1000)/(0.046*waveforms) # to convert to cps. parenthesis is the dwell time in milliseconds.
         mean_value = output.mean()
         
         dwell_time = 0.046*waveforms #in ms .Tested with new datasets, still holds true
@@ -649,24 +649,26 @@ def tr_eff_freq(element, flow_rate = 0, numb_conc = 0, std_conc = 0, density = 0
     ds = io(filepath)
     waveforms = ds.attrs['NbrWaveforms']
     data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
-    output[f'{element}'] = data * waveforms
+    output[f'{element}'] = data * waveforms #counts. 
     
     #Determining detected particle frequency 
     
     events = find_events(output[element],datapoints_per_segment,threshold_model)
     analysis_time = 0.046*waveforms*len(output)/60000 # Time in minutes
-    freq = events.count()/analysis_time # pulses per minute    
+    freq = events.count()/analysis_time # pulses per minute 
 
     # Choice between having or not having the number concentration
     if numb_conc == 0:
-        mass_per_part = ((np.pi*(diameter**3)*density)/6)*(10**6) # in fg
-        numb_conc = (std_conc/mass_per_part)*10**(9) # particles per mL 
+        mass_per_part = (((np.pi*(diameter**3)*density)/6)/(10**21))# in g. 
+        numb_conc = std_conc/mass_per_part /10**(6) # particles per mL
+                     
     else:
         pass
+                     
     
     # Determining transport efficiency
     
-    tr_eff = freq/(flow_rate*numb_conc)
+    tr_eff = (freq)/(flow_rate*numb_conc)
     
     # Optional plotting
     
@@ -740,16 +742,18 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
     ds = io(filepath)
     waveforms = ds.attrs['NbrWaveforms']
     data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
-    output["Blank"] = data * waveforms
+    output["Blank"] = data * waveforms # counts then
     blank = output["Blank"].mean()
     #print("blank mean", blank)
+    
+    print("blank dt:",0.046*waveforms)
     
     part_cal_dict[0] = blank   
     
     
     # Ask for Particle Calibration STD
+    output2=pd.DataFrame()
     mass_per_part = ((np.pi*(diameter**3)*density)/6)*(10**6) # in fg
-    #print("mass per part", mass_per_part)
     
     filepath = filedialog.askopenfilename(title='Choose particle calibration standard file to open',
                                          filetypes = (("HDF5 files","*.h5"),
@@ -758,29 +762,37 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
     ds = io(filepath)
     waveforms = ds.attrs['NbrWaveforms']
     data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
-    output["Particle STD"] = data * waveforms
+    output2["Particle STD"] = data * waveforms
+       
+    print("particles dt:",0.046*waveforms)
     
-    events = find_events(output["Particle STD"],datapoints_per_segment,threshold_model)
+    # find the particles
+    events = find_events(output2["Particle STD"],datapoints_per_segment,threshold_model)
     particle_mean = events.mean()
-    #print("particle mean intensity=", particle_mean)
-    #print("particle std num =", events.count())
+    print("particle mean intensity=", particle_mean)
+    print("particle std num =", events.count())
     
     part_cal_dict[diameter] = particle_mean
     
-    #print("particle dictionary:", part_cal_dict)
+    print("particle dictionary:", part_cal_dict)
     
     Xparts = np.array(list(part_cal_dict.keys()))
     Yparts = np.array(list(part_cal_dict.values()))
     
     parts_slope, parts_intercept, parts_r_value, parts_p_value, parts_stderr = stats.linregress(Xparts,Yparts)
     
-    #print("particle slope",parts_slope)
+    print("particle slope",parts_slope)
 
+     # Merge the two datasets. This way to avoid losing data from the particle standard
+    
+    output = pd.concat([output,output2], axis=1)
+    print(output)
+    
     
     # Ask for Liquid calibration STD
     plot_dict = {}
     for value in Xaxis: # value is supposedly given in ug/ml (ppm) by the user
-        filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' liquid standard',
+        filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' ppm liquid standard',
                                           filetypes = (("HDF5 files","*.h5"),
                                                       ("netCDF files","*.nc"))
                                          )
@@ -792,21 +804,21 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
         dwell_time = 0.046*waveforms #in ms
         mass_per_dwell = flow_rate*dwell_time*value # Wdiss
         plot_dict[mass_per_dwell] = mean_value
-    #print("liquid dict", plot_dict)    
-    #print(output)
+    print("liquid dict", plot_dict)    
+    print(output)
     
     Xplot = np.array(list(plot_dict.keys()))
     Yplot = np.array(list(plot_dict.values()))
     
     slope, intercept, r_value, p_value, stderr = stats.linregress(Xplot,Yplot)
     
-    #print("liquid slope", slope)
+    print("liquid slope", slope)
     
     # Determining transport efficiency
     
     tr_eff = parts_slope/slope
     
-    #print("TE =", tr_eff)
+    print("TE =", tr_eff)
     
     # Optional plotting
     
@@ -841,7 +853,7 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
     return tr_eff 
 
 
-def mass_hist(element, slope = 0, ion_efficiency =1, mass_fraction = 1, density = 0, datapoints_per_segment=100, threshold_model = "Poisson", make_plot = False, plot_name = 'name', export_csv = False, csv_name = 'name'):
+def mass_hist(element, slope = 0, ion_efficiency =1, mass_fraction = 1, density = 0, datapoints_per_segment=100, threshold_model = "Poisson", make_plot = False, plot_name = 'name', export_csv = False, csv_name = 'name', bins = 50):
     """
     Makes a mass or size distribution for the sample. The function will ask for the blank file, and then the sample file.  
     
@@ -896,18 +908,16 @@ def mass_hist(element, slope = 0, ion_efficiency =1, mass_fraction = 1, density 
     events = find_events(element_signal,datapoints_per_segment,threshold_model)
     events_output[element] = events
     
-    
+    ##### Tested the intensity output, it is correct. Intensity in Counts is coming out, and it is fine. The conversion to size doesn't work, either cause of the slope being bad from before, or because the conversion itself doesn't work. 
     
     # Calculate mass per event
     
     mass_per_event = ((((events_output)/I_blank)/ion_efficiency)/slope)/mass_fraction
-    print(mass_per_event)
     
     # Choice between particle size or mass
     if density == 0:
         output = mass_per_event
         Xlabel = "Mass per event (μg)"
-        
     
     else:   
         diameter = ((6*(mass_per_event))/(np.pi*density))**(1/3)
@@ -924,7 +934,7 @@ def mass_hist(element, slope = 0, ion_efficiency =1, mass_fraction = 1, density 
         ax.set_ylabel("Frequency")
         ax.hist(output,
                 linewidth = 0.5,
-                edgecolor = 'white',bins=20)
+                edgecolor = 'white',bins=bins)
 
         plt.savefig(plot_name)
         
