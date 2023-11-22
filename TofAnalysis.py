@@ -496,7 +496,7 @@ def conc_cal_curve(title,element,*Xaxis,make_plot = False, export = False, csv_n
     x1=np.linspace(mn,mx)
     y1=slope*x1+intercept
     
-    ax.set_ylabel("Intensity (cts)", size=14) # Just axes names
+    ax.set_ylabel("Intensity (cps)", size=14) # Just axes names
     ax.set_xlabel("Concentration (ppb)", size=14)
     
     ax.plot(x1,y1,'--r')
@@ -551,16 +551,16 @@ def mass_cal_curve(title,element,*Xaxis, flow_rate = 0, tr_eff = 0, make_plot = 
     """
     plot_dict = {}
     
-    for value in Xaxis: # value is supposedly given in ug/ml (ppb) by the user
+    for value in Xaxis: # value is supposedly given in ug/ml (ppm) by the user
         output = pd.DataFrame()
-        filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' standard',
+        filepath = filedialog.askopenfilename(title='Choose file for the '+str(value)+' ppm standard',
                                           filetypes = (("HDF5 files","*.h5"),
                                                       ("netCDF files","*.nc"))
                                          )
         ds = io(filepath)
         waveforms = ds.attrs['NbrWaveforms']
         data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
-        output[f'{element}'] = (data * waveforms * 1000)/(0.046*waveforms) # to convert to cps. parenthesis is the dwell time in milliseconds.
+        output[f'{element}'] = data * waveforms #counts .
         mean_value = output.mean()
         
         dwell_time = 0.046*waveforms #in ms .Tested with new datasets, still holds true
@@ -584,7 +584,7 @@ def mass_cal_curve(title,element,*Xaxis, flow_rate = 0, tr_eff = 0, make_plot = 
     x1=np.linspace(mn,mx)
     y1=slope*x1+intercept
     
-    ax.set_ylabel("Intensity (cts)", size=14) # Just axes names
+    ax.set_ylabel("Intensity (cts/event)", size=14) # Just axes names
     ax.set_xlabel("Mass per event (μg)", size=14)
     
     ax.plot(x1,y1,'--r')
@@ -889,7 +889,7 @@ def mass_hist(element, slope = 0, ion_efficiency =1, mass_fraction = 1, density 
     ds = io(filepath)
     waveforms = ds.attrs['NbrWaveforms']
     data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
-    I_blank = (data * waveforms).mean()
+    I_blank = (data * waveforms).mean() # in counts
     
     
     # Ask for the file in question
@@ -901,18 +901,18 @@ def mass_hist(element, slope = 0, ion_efficiency =1, mass_fraction = 1, density 
     ds2 = io(filepath2)
     waveforms2 = ds2.attrs['NbrWaveforms']
     data2 = ds2.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
-    element_signal = data2*waveforms2
+    element_signal = data2*waveforms2 #in counts
     
     events_output = pd.DataFrame()
     
     events = find_events(element_signal,datapoints_per_segment,threshold_model)
     events_output[element] = events
-    
+    #print(events.count())
     ##### Tested the intensity output, it is correct. Intensity in Counts is coming out, and it is fine. The conversion to size doesn't work, either cause of the slope being bad from before, or because the conversion itself doesn't work. 
     
     # Calculate mass per event
     
-    mass_per_event = ((((events_output)/I_blank)/ion_efficiency)/slope)/mass_fraction
+    mass_per_event = (((((events_output)-I_blank)/ion_efficiency)/slope)/mass_fraction)#*(10**9) for conversion from ug to fg for comparison with report. Done, it's the same. So mass is also okay now. 
     
     # Choice between particle size or mass
     if density == 0:
@@ -920,7 +920,7 @@ def mass_hist(element, slope = 0, ion_efficiency =1, mass_fraction = 1, density 
         Xlabel = "Mass per event (μg)"
     
     else:   
-        diameter = ((6*(mass_per_event))/(np.pi*density))**(1/3)
+        diameter = ((6*(mass_per_event))/(np.pi*density))**(1/3) * (10**5) # when ug for the mass, convert to nm with 10 to the 5th
         output = diameter
         Xlabel = "Size (nm)"
             
