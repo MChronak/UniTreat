@@ -93,7 +93,6 @@ def elementalRatio(indata, element_numerator, element_denominator, make_plot = F
     numerator_mean = numerator.mean()
     denominator_mean = denominator.mean()
     mean_ratio = numerator_mean/denominator_mean #to avoid problems of dividing with 0, divides the mean values, not the datsets on a per point ratio
-    print("Ratio =",mean_ratio)
 
     # Plotting
     if (make_plot):
@@ -477,17 +476,15 @@ def conc_cal_curve(title,element,*Xaxis,make_plot = False, export = False, csv_n
         output[f'{element}'] = (data * waveforms * 1000)/(0.046*waveforms) # to convert to cps. parenthesis is the dwell time in milliseconds.
         mean_value = output.mean()
         plot_dict[value] = mean_value[0]
-    #print("dictionary:", plot_dict)    
+        
     fig = plt.figure(figsize =(5,5))
     fig.suptitle(title)
     ax = fig.add_subplot(1,1,1)
     ax.plot(*zip(*sorted(plot_dict.items())),'ob')
-    #print("sorted dictionary:", *zip(*sorted(plot_dict.items())))
+    
     
     Xplot = np.array(list(plot_dict.keys()))
     Yplot = np.array(list(plot_dict.values()))
-    #print("X:",Xplot)
-    #print("Y:",Yplot)
     
     slope, intercept, r_value, p_value, stderr = stats.linregress(Xplot,Yplot)
         
@@ -746,7 +743,6 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
     data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
     output["Blank"] = data * waveforms # counts then
     blank = output["Blank"].mean() # also in counts
-    #print("blank mean", blank)
     
     part_cal_dict[0] = blank   
     
@@ -775,17 +771,11 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
     # Cheched events number and mean intensity, looks okay. 
     
     part_cal_dict[mass_per_part] = particle_mean # so, the mass_per part calculated by the given values is the key, and the counts for it is the value.
-    
-    #print("particle dictionary:", part_cal_dict)
-    
+        
     Xparts = np.array(list(part_cal_dict.keys()))
-    #print ("particle X =", Xparts)
     Yparts = np.array(list(part_cal_dict.values()))
-    #print ("particle y =", Yparts)
     
     parts_slope, parts_intercept, parts_r_value, parts_p_value, parts_stderr = stats.linregress(Xparts,Yparts)
-    
-    print("particle slope=",parts_slope)
 
      # Merge the two datasets. This way to avoid losing data from the particle standard
     
@@ -804,22 +794,18 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
         output[f'{value}'] = data * waveforms #counts
         mean_value = (data*waveforms).mean() # mean intensity, Ydiss, still in counts
         dwell_time = 0.046*waveforms #in ms
-        mass_per_dwell = flow_rate*dwell_time*value/(10**6) # Wdiss, turning ug to g
+        mass_per_dwell = flow_rate*dwell_time*value/(10**6) # Wdiss, turning ug to g to match the calculated mass units from before
         plot_dict[mass_per_dwell] = mean_value
-    print("liquid dict: ", plot_dict) 
     
     Xplot = np.array(list(plot_dict.keys()))
     Yplot = np.array(list(plot_dict.values()))
     
     slope, intercept, r_value, p_value, stderr = stats.linregress(Xplot,Yplot)
     
-    print("liquid slope =", slope)
     
     # Determining transport efficiency
     
-    tr_eff = parts_slope/slope
-    
-    print("TE =", tr_eff)
+    tr_eff = slope/parts_slope
     
     # Optional plotting
     
