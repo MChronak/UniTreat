@@ -659,8 +659,10 @@ def tr_eff_freq(element, flow_rate = 0, numb_conc = 0, std_conc = 0, density = 0
 
     # Choice between having or not having the number concentration
     if numb_conc == 0:
-        mass_per_part = (((np.pi*(diameter**3)*density)/6)/(10**21))# in g. 
-        numb_conc = std_conc/mass_per_part /10**(6) # particles per mL
+        mass_per_part = (np.pi*(diameter**3)*(density/(10**21)))/6
+        # in g. The 10**21 chamges the density from g/cm3 to g/nm3
+        numb_conc = (std_conc/10**(6))/mass_per_part  
+        # particles per mL. /10**6 turns mg/l to g/ml
                      
     else:
         pass
@@ -710,7 +712,7 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
     -Xaxis: Use the concentrations of the standards in ppm (ug/mL), as numbers. When run, the program will ask for the relevant files, one by one. 
     (!) Make sure all recording are of the same length 
 
-    -"flow_rate": The flow rate the analysis of the sample was conducted with, in mL/min 
+    -"flow_rate": The flow rate the analysis of the sample was conducted with, in mL/ms 
     -"density": The density of the particles, e.g., of the element in g/cm^3. 
     -"diameter": The diameter of the particles in nm.
         
@@ -743,18 +745,20 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
     waveforms = ds.attrs['NbrWaveforms']
     data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
     output["Blank"] = data * waveforms # counts then
-    blank = output["Blank"].mean()
+    blank = output["Blank"].mean() # also in counts
     #print("blank mean", blank)
-    
-    print("blank dt:",0.046*waveforms)
     
     part_cal_dict[0] = blank   
     
+    # Calculating the expected mass per particle
+    
+    mass_per_part = (np.pi*(diameter**3)*(density/(10**21)))/6 #in g
+    # checked the mass calculation, it is correct
     
     # Ask for Particle Calibration STD
-    output2=pd.DataFrame()
-    mass_per_part = ((np.pi*(diameter**3)*density)/6)*(10**6) # in fg
     
+    output2=pd.DataFrame()
+        
     filepath = filedialog.askopenfilename(title='Choose particle calibration standard file to open',
                                          filetypes = (("HDF5 files","*.h5"),
                                                       ("netCDF files","*.nc"))
@@ -762,32 +766,30 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
     ds = io(filepath)
     waveforms = ds.attrs['NbrWaveforms']
     data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
-    output2["Particle STD"] = data * waveforms
-       
-    print("particles dt:",0.046*waveforms)
+    output2["Particle STD"] = data * waveforms # counts
     
     # find the particles
     events = find_events(output2["Particle STD"],datapoints_per_segment,threshold_model)
-    particle_mean = events.mean()
-    print("particle mean intensity=", particle_mean)
-    print("particle std num =", events.count())
+    # Checked the histogram, looks okay
+    particle_mean = events.mean() # still in counts
+    # Cheched events number and mean intensity, looks okay. 
     
-    part_cal_dict[diameter] = particle_mean
+    part_cal_dict[mass_per_part] = particle_mean # so, the mass_per part calculated by the given values is the key, and the counts for it is the value.
     
-    print("particle dictionary:", part_cal_dict)
+    #print("particle dictionary:", part_cal_dict)
     
     Xparts = np.array(list(part_cal_dict.keys()))
+    #print ("particle X =", Xparts)
     Yparts = np.array(list(part_cal_dict.values()))
+    #print ("particle y =", Yparts)
     
     parts_slope, parts_intercept, parts_r_value, parts_p_value, parts_stderr = stats.linregress(Xparts,Yparts)
     
-    print("particle slope",parts_slope)
+    print("particle slope=",parts_slope)
 
      # Merge the two datasets. This way to avoid losing data from the particle standard
     
-    output = pd.concat([output,output2], axis=1)
-    print(output)
-    
+    output = pd.concat([output,output2], axis=1)    
     
     # Ask for Liquid calibration STD
     plot_dict = {}
@@ -799,20 +801,19 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
         ds = io(filepath)
         waveforms = ds.attrs['NbrWaveforms']
         data = ds.Data.loc[:,element].to_dataframe().drop('mass', axis=1).squeeze()
-        output[f'{value}'] = data * waveforms
-        mean_value = (data*waveforms).mean() # mean intensity, Ydiss
+        output[f'{value}'] = data * waveforms #counts
+        mean_value = (data*waveforms).mean() # mean intensity, Ydiss, still in counts
         dwell_time = 0.046*waveforms #in ms
-        mass_per_dwell = flow_rate*dwell_time*value # Wdiss
+        mass_per_dwell = flow_rate*dwell_time*value/(10**6) # Wdiss, turning ug to g
         plot_dict[mass_per_dwell] = mean_value
-    print("liquid dict", plot_dict)    
-    print(output)
+    print("liquid dict: ", plot_dict) 
     
     Xplot = np.array(list(plot_dict.keys()))
     Yplot = np.array(list(plot_dict.values()))
     
     slope, intercept, r_value, p_value, stderr = stats.linregress(Xplot,Yplot)
     
-    print("liquid slope", slope)
+    print("liquid slope =", slope)
     
     # Determining transport efficiency
     
