@@ -4,7 +4,7 @@ import pandas as pd
 def io(h5file):
     import os, sys
     import xarray as xr
-    import netCDF4 as nc
+    import h5py as hdf
     
     nlist = ['6Li', '7Li', '9Be', '10B', '11B', '12C', '13C', '14N', '15N',
              '16O', 'OH', '18O', 'H2O', 'H3O', '23Na', '24Mg', '25Mg', '26Mg', 'C2H2',
@@ -43,17 +43,10 @@ def io(h5file):
              '204Hg', '205Tl', '206Pb', '207Pb', '208Pb', '209Bi', '220Bkg', '232Th',
              '234U', '235U', '238U', 'ThO', 'UO']            
 
-    ndata = nc.Dataset(h5file)
-
-    vnames = [f for f in ndata.groups['ICAP'].variables['TwInfo']]
-    vdata = [f for f in ndata.groups['ICAP'].variables['TwData']]
-
+    hfile = hdf.File(h5file)
     ds = xr.Dataset()
-    for i,d in enumerate(vnames):
-        dloc = np.asarray(vdata)[:,i]
-        ds[d] = xr.DataArray(dloc, dims=['readings'])
 
-    pdata = ndata.groups['PeakData'].variables['PeakData'][:]
+    pdata = hfile['PeakData']['PeakData'][:]
     pdata = pdata.squeeze()
     pdata = pdata.reshape(pdata.shape[0]*pdata.shape[1], pdata.shape[2])
 
@@ -61,23 +54,15 @@ def io(h5file):
     ds['Data'] = xr.DataArray(pdata, 
                               coords=[time,nlist], 
                               dims=['datapoints','mass'])
-    nattrs = list()
-    vattrs = list()
-    for at in list(ndata.__dict__):
-        nattrs.append(at)
-        vattrs.append(ndata.__dict__[at])
 
     attrs = dict()
-    for i,v in enumerate(nattrs):
-        attrs[v] = vattrs[i]
-
-
-    del(attrs['Configuration File Contents'])
+    attrs['NbrWaveforms'] = hfile.attrs['NbrWaveforms'][0]
+    attrs['SIS'] = float([f for f in str(hfile.attrs['Configuration File Contents']).split('\\n') if f.startswith('SingleIonSignal')][0].split('=')[1])
 
     ds.attrs = attrs
-    
-    return ds
 
+    hfile.close()
+    return ds
 def deconvolute (dataset, threshold_model = 'Poisson'):
     """Separates the single-moieties related events from the background in a
     given dataset.
