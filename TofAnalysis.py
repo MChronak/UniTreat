@@ -160,7 +160,7 @@ def simultaneousEvents(datain,*elements,make_plots=False, datapoints_per_segment
     
     if (make_plots):
         number = 0   
-        
+        sns.set()
         for element in elements:
             number = number+1
             fig = plt.figure(number,figsize =(5,5))
@@ -172,7 +172,7 @@ def simultaneousEvents(datain,*elements,make_plots=False, datapoints_per_segment
                     linewidth = 0.5,
                     edgecolor = 'white',bins=20)
             plt.savefig(element)
-            
+        sns.reset_orig()   
     if (export):
         output.to_csv(csv_name+'.csv')
         
@@ -682,6 +682,7 @@ def tr_eff_freq(element, flow_rate = 0, numb_conc = 0, std_conc = 0, density = 0
                 linewidth = 0.5,
                 edgecolor = 'white',bins=20)
         plt.savefig(plot_name)
+        sns.reset_orig()
 
     
     # Optional Exporting
@@ -820,6 +821,7 @@ def tr_eff_size(element, *Xaxis, flow_rate = 0, density = 0, diameter = 0, datap
                 linewidth = 0.5,
                 edgecolor = 'white',bins=20)
         plt.savefig(plot_name)
+        sns.reset_orig()
 
     
     # Optional Exporting
@@ -924,7 +926,7 @@ def mass_hist(element, slope = 0, ion_efficiency =1, mass_fraction = 1, density 
                 edgecolor = 'white',bins=bins)
 
         plt.savefig(plot_name)
-        
+        sns.reset_orig()
     if (export_csv):
         output.to_csv(csv_name+'.csv')  
         
@@ -968,6 +970,7 @@ def biomolecule_mass(datain, biomol_mr, metal_ar, numb_atoms_per_tag, numb_tags_
                 edgecolor = 'white',bins=20)
 
         plt.savefig(plot_name)
+        sns.reset_orig()
         
     if (export_csv):
         biom_mass_per_event.to_csv(csv_name+'.csv')  
